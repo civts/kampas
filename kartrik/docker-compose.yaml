@@ -1,0 +1,8 @@
+version: "3.8"
+services:
+  surreal:
+    container_name: surrealdb
+    ports:
+      - 8002:8000
+    image: surrealdb/surrealdb:latest
+    command: start --log trace --user root --pass root memory

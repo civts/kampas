@@ -1,0 +1,33 @@
+{
+  "editor.lightbulb.enabled": false,
+  "rust-analyzer.assist.expressionFillDefault": "default",
+  "workbench.colorCustomizations": {
+    "[Default Dark+]": {
+      "editorInlayHint.foreground": "#4b4b4b",
+      "editorInlayHint.background": "#00000000"
+    }
+  },
+  "files.exclude": {
+    "**/.git/": true,
+    "**/.svn/": true,
+    "**/.hg/": true,
+    "**/CVS/": true,
+    "**/target/": true,
+    "**/.DS_Store": true,
+    "**/Thumbs.db/": true,
+    "**/.svelte-kit/": true,
+  },
+  // "rust-analyzer.files.excludeDirs": []
+  "rust-analyzer.inlayHints.lifetimeElisionHints.enable": "skip_trivial",
+  "rust-analyzer.workspace.symbol.search.scope": "workspace_and_dependencies",
+  // "rust-analyzer.rustfmt.extraArgs": [
+  //   "--edition",
+  //   "2021"
+  // ],
+  "debug.allowBreakpointsEverywhere": true,
+  "[toml]": {
+    "editor.formatOnSave": true,
+    "editor.defaultFormatter": "tamasfe.even-better-toml",
+  },
+  "svelte.enable-ts-plugin": true
+}
