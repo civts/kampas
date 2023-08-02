@@ -36,6 +36,15 @@
 	<button type="submit">Add</button>
 </form>
 
+<form
+	action="http://localhost:8000/api/v1/controls/upload"
+	method="post"
+	enctype="multipart/form-data"
+>
+	<input name="file" type="file" accept="text/csv" />
+	<input type="submit" value="upload" />
+</form>
+
 <style lang="scss">
 	form {
 		display: flex;
