@@ -24,6 +24,7 @@
             clippy
             rustfmt
             cargo
+            cargo-watch
             rustup
             gcc
             nodejs
