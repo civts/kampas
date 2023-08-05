@@ -1,17 +1,10 @@
-use serde::{Deserialize, Serialize};
+use serde::Deserialize;
 use surrealdb::engine::remote::ws::{Client, Ws};
 use surrealdb::opt::auth::Root;
 use surrealdb::sql::Thing;
 use surrealdb::Surreal;
 
-#[derive(Debug, Clone, Serialize, Deserialize, FromForm)]
-#[serde(crate = "rocket::serde")]
-pub(crate) struct Control {
-    #[field(validate = len(3..30))]
-    title: String,
-    #[field(validate = len(3..300))]
-    description: String,
-}
+use crate::models::control::Control;
 
 #[derive(Debug, Deserialize)]
 struct Record {

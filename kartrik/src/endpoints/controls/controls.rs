@@ -1,5 +1,6 @@
-use crate::helpers::surrealdb::{
-    add_control as add_controll, get_controls as get_controlss, Control,
+use crate::{
+    helpers::surrealdb::{add_control as add_controll, get_controls as get_controlss},
+    models::control::Control,
 };
 use rocket::{form::Form, http::Status, response::status, serde::json::serde_json, State};
 use surrealdb::{engine::remote::ws::Client, Surreal};

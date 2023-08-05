@@ -2,6 +2,7 @@
 extern crate rocket;
 mod endpoints;
 mod helpers;
+mod models;
 use endpoints::controls::{
     controls::{add_control, get_controls},
     upload::upload,
