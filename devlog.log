@@ -1,0 +1,13 @@
+## Adding authentication
+looked into rocket's fairings, but derouted on request guards
+maybe its in https://rocket.rs/v0.5-rc/guide/requests/#cookies
+wrestled with Pins and Boxes
+found the solution on https://api.rocket.rs/v0.5-rc/rocket/request/trait.FromRequest.html#example-1
+I was missing a macro and had imported the wrong Outcome
+we got cookies authentication! well, still have to do teh register flow, and I am using cookies instead of API keys
+
+
+### Changing cookies for API keys
+### Add proper logging
+### API rate limiting
+### Add person to company (register)
