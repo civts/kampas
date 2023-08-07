@@ -13,7 +13,10 @@ use helpers::{cors::CORS, surrealdb::get_client};
 async fn rocket() -> _ {
     let client = get_client().await.unwrap();
     rocket::build()
-        .mount("/", routes![add_control, get_controls, upload])
+        .mount(
+            "/api/v1/controls",
+            routes![add_control, get_controls, upload],
+        )
         .attach(CORS)
         .manage(client)
 }

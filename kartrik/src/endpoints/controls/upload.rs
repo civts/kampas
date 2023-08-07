@@ -15,11 +15,7 @@ pub(crate) struct UploadFormData<'f> {
     file: TempFile<'f>,
 }
 
-#[post(
-    "/api/v1/controls/upload",
-    format = "multipart/form-data",
-    data = "<form>"
-)]
+#[post("/upload", format = "multipart/form-data", data = "<form>")]
 pub(crate) async fn upload(
     form: Form<UploadFormData<'_>>,
     db: &State<Surreal<Client>>,

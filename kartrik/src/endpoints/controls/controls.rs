@@ -5,7 +5,7 @@ use crate::{
 use rocket::{form::Form, http::Status, response::status, serde::json::serde_json, State};
 use surrealdb::{engine::remote::ws::Client, Surreal};
 
-#[post("/api/v1/controls", data = "<form_data>")]
+#[post("/", data = "<form_data>")]
 pub(crate) async fn add_control(form_data: Form<Control>, db: &State<Surreal<Client>>) -> String {
     let control = form_data.into_inner();
     match add_controll(control.clone(), db).await {
@@ -16,7 +16,7 @@ pub(crate) async fn add_control(form_data: Form<Control>, db: &State<Surreal<Cli
     }
 }
 
-#[get("/api/v1/controls")]
+#[get("/")]
 pub(crate) async fn get_controls(db: &State<Surreal<Client>>) -> status::Custom<String> {
     let controls_res = get_controlss(db).await;
     match controls_res {
