@@ -1,3 +1,5 @@
+use crate::helpers::cryptography::generate_random_string;
+use crate::helpers::cryptography::hash_salted_password;
 use crate::helpers::surrealdb::add_user;
 use crate::helpers::surrealdb::does_user_exist;
 use crate::models::user::User;
@@ -9,6 +11,7 @@ use surrealdb::Surreal;
 pub(crate) struct RegisterRqData {
     #[field(validate = len(3..30))]
     username: String,
+    password: String,
 }
 
 /// Creates a new user
@@ -21,11 +24,14 @@ pub(crate) async fn register(
     if let Ok(true) = does_user_exist(&req_data.username, db).await {
         "Error".to_string()
     } else {
+        let salt = generate_random_string(64);
+        let password_hash = hash_salted_password(&req_data.password, &salt);
+
         let add_res = add_user(
             User {
                 username: req_data.username.to_owned(),
-                password_hash: "TODO".to_string(),
-                password_salt: "TODOOOOOOO".to_string(),
+                password_hash,
+                password_salt: salt,
             },
             db,
         )
