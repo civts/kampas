@@ -72,15 +72,18 @@ pub(crate) async fn get_user(
 }
 
 pub(crate) async fn add_token(token: &Token, db: &Surreal<Client>) -> surrealdb::Result<()> {
-    let _created: Record = db.create(("token", &token.user_id)).content(&token).await?;
+    let _created: Record = db
+        .create(("token", &token.username))
+        .content(&token)
+        .await?;
     Ok(())
 }
 
 pub(crate) async fn get_token(
-    user_id: &str,
+    username: &str,
     db: &Surreal<Client>,
 ) -> surrealdb::Result<Option<Token>> {
-    let token: Option<Token> = db.select(("token", user_id)).await?;
+    let token: Option<Token> = db.select(("token", username)).await?;
     Ok(token)
 }
 

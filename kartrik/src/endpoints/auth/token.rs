@@ -13,7 +13,9 @@ use surrealdb::Surreal;
 
 #[derive(FromForm)]
 pub(crate) struct LoginFormData {
-    user_id: String,
+    #[field(validate = len(3..30))]
+    username: String,
+    #[field(validate = len(8..257))]
     password: String,
 }
 
@@ -23,13 +25,13 @@ pub(crate) async fn generate_token(
     form_data: Form<LoginFormData>,
     db: &State<Surreal<Client>>,
 ) -> status::Custom<String> {
-    let user_id = &form_data.user_id;
-    let user_res = get_user(user_id, db).await;
+    let username = &form_data.username;
+    let user_res = get_user(username, db).await;
     match user_res {
         Ok(user_opt) => match user_opt {
             Some(user) => {
                 assert!(
-                    &user.username == user_id,
+                    &user.username == username,
                     "The user we fetched must be the same as the logged in one"
                 );
 
@@ -43,11 +45,11 @@ pub(crate) async fn generate_token(
                 ))
                 .expect("This must be a valid hash, else we can't program");
                 if password_hash == db_password_hash {
-                    let previous_token_opt = get_token(user_id, db).await.unwrap_or(None);
+                    let previous_token_opt = get_token(username, db).await.unwrap_or(None);
                     if let Some(token) = previous_token_opt {
                         if token.is_expired() {
                             println!("Token expired, generating a new one");
-                            let token = Token::new(user_id);
+                            let token = Token::new(username);
                             add_token(&token, db)
                                 .await
                                 .expect("Can add the token to the DB");
@@ -56,7 +58,7 @@ pub(crate) async fn generate_token(
                             status::Custom(Status::Ok, token.token)
                         }
                     } else {
-                        let token = Token::new(user_id);
+                        let token = Token::new(username);
                         add_token(&token, db)
                             .await
                             .expect("Can add the token to the DB");
@@ -67,7 +69,7 @@ pub(crate) async fn generate_token(
                 }
             }
             None => {
-                println!("No such user: {user_id:?}");
+                println!("No such user: {username:?}");
                 status::Custom(Status::NotFound, "No such user".to_string())
             }
         },

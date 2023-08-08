@@ -6,14 +6,14 @@ use serde::{Deserialize, Serialize};
 #[serde(crate = "rocket::serde")]
 pub(crate) struct Token {
     pub(crate) token: String,
-    pub(crate) user_id: String,
+    pub(crate) username: String,
     pub(crate) expiry: DateTime<Utc>,
 }
 
 impl Token {
-    pub(crate) fn new(user_id: &String) -> Self {
+    pub(crate) fn new(username: &String) -> Self {
         Token {
-            user_id: user_id.clone(),
+            username: username.clone(),
             token: generate_random_string(64),
             expiry: chrono::offset::Utc::now()
                 .checked_add_days(Days::new(7))

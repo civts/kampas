@@ -11,6 +11,7 @@ use surrealdb::Surreal;
 pub(crate) struct RegisterRqData {
     #[field(validate = len(3..30))]
     username: String,
+    #[field(validate = len(8..257))]
     password: String,
 }
 

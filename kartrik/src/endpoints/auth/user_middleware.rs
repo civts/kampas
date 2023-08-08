@@ -53,7 +53,7 @@ impl<'r> FromRequest<'r> for User {
                                 AuthCookieError::Invalid,
                             ))
                         } else {
-                            let user_res = get_user(&token.user_id, db).await;
+                            let user_res = get_user(&token.username, db).await;
                             if let Ok(Some(user)) = user_res {
                                 Outcome::Success(user)
                             } else {
