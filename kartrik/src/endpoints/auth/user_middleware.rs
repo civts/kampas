@@ -1,86 +1,44 @@
+use super::token_middleware::AuthTokenError;
 use crate::helpers::surrealdb::get_user;
-use crate::models::token::Token;
+use crate::models::token::AuthToken;
 use crate::models::user::User;
-use rocket::http::Status;
 use rocket::request::{FromRequest, Outcome, Request};
 use rocket::State;
 use surrealdb::engine::remote::ws::Client;
 use surrealdb::Surreal;
 
-#[derive(Debug)]
-pub enum AuthCookieError {
-    Missing,
-    Invalid,
-    // Unauthorized,
-}
-
-impl AuthCookieError {
-    fn to_http_code(&self) -> Status {
-        match self {
-            AuthCookieError::Missing => Status::Unauthorized,
-            AuthCookieError::Invalid => Status::Unauthorized,
-        }
-    }
-}
-
 #[rocket::async_trait]
 impl<'r> FromRequest<'r> for User {
-    type Error = AuthCookieError;
+    type Error = AuthTokenError;
 
+    /// Returns the user-if a- to which this request is relative to, using the AuthToken
     async fn from_request(req: &'r Request<'_>) -> Outcome<Self, Self::Error> {
-        match req.headers().get_one("x-api-key") {
-            None => Outcome::Failure((
-                AuthCookieError::Missing.to_http_code(),
-                AuthCookieError::Missing,
-            )),
-            Some(user_supplied_token) => {
-                let db = req.guard::<&State<Surreal<Client>>>().await.unwrap();
+        let token_from_req = req.guard::<AuthToken>().await;
+        if token_from_req.is_success() {
+            let token = token_from_req.unwrap();
+            let db = req.guard::<&State<Surreal<Client>>>().await.unwrap();
 
-                let mut token_opt = db
-                    .query("SELECT * FROM token WHERE token = $tk")
-                    .bind(("tk", user_supplied_token))
-                    .await
-                    .expect("Can perform a select");
-
-                let token_res: Result<Option<Token>, surrealdb::Error> = token_opt.take(0);
-
-                match token_res {
-                    Ok(Some(token)) => {
-                        if token.is_expired() {
-                            println!("The token is expired");
-                            Outcome::Failure((
-                                AuthCookieError::Invalid.to_http_code(),
-                                AuthCookieError::Invalid,
-                            ))
-                        } else {
-                            let user_res = get_user(&token.username, db).await;
-                            if let Ok(Some(user)) = user_res {
-                                Outcome::Success(user)
-                            } else {
-                                println!("Could not retrieve user");
-                                Outcome::Failure((
-                                    AuthCookieError::Invalid.to_http_code(),
-                                    AuthCookieError::Invalid,
-                                ))
-                            }
-                        }
-                    }
-                    Ok(None) => {
-                        println!("Could not find that token in the DB");
-                        Outcome::Failure((
-                            AuthCookieError::Invalid.to_http_code(),
-                            AuthCookieError::Invalid,
-                        ))
-                    }
-                    Err(err) => {
-                        println!("Could not query the DB: {err:?}");
-                        Outcome::Failure((
-                            AuthCookieError::Invalid.to_http_code(),
-                            AuthCookieError::Invalid,
-                        ))
-                    }
+            let user_res = get_user(&token.username, db).await;
+            match user_res {
+                Ok(Some(user)) => Outcome::Success(user),
+                Ok(None) => {
+                    println!("We have a token relative to an unknown user, TODO: delete the token");
+                    Outcome::Failure((
+                        AuthTokenError::Invalid.to_http_code(),
+                        AuthTokenError::Invalid,
+                    ))
+                }
+                Err(err) => {
+                    println!("Had a problem retrieving user from database: {err:?}");
+                    Outcome::Failure((
+                        AuthTokenError::InternalError.to_http_code(),
+                        AuthTokenError::InternalError,
+                    ))
                 }
             }
+        } else {
+            let failure = token_from_req.failed().expect("Should be a failure");
+            Outcome::Failure(failure)
         }
     }
 }

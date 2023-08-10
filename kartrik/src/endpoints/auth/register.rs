@@ -4,6 +4,8 @@ use crate::helpers::surrealdb::add_user;
 use crate::helpers::surrealdb::does_user_exist;
 use crate::models::user::User;
 use rocket::form::Form;
+use rocket::http::Status;
+use rocket::response::status;
 use rocket::State;
 use surrealdb::engine::remote::ws::Client;
 use surrealdb::Surreal;
@@ -20,10 +22,10 @@ pub(crate) struct RegisterRqData {
 pub(crate) async fn register(
     req_data: Form<RegisterRqData>,
     db: &State<Surreal<Client>>,
-) -> String {
+) -> status::Custom<&str> {
     //Ask the db if the user is already present
     if let Ok(true) = does_user_exist(&req_data.username, db).await {
-        "Error".to_string()
+        status::Custom(Status::Conflict, "Username already registered")
     } else {
         let salt = generate_random_string(64);
         let password_hash = hash_salted_password(&req_data.password, &salt);
@@ -38,8 +40,15 @@ pub(crate) async fn register(
         )
         .await;
         match add_res {
-            Ok(_) => "User Created".to_string(),
-            Err(_) => "Error".to_string(),
+            Ok(_) => status::Custom(Status::Ok, "User created"),
+            Err(err) => {
+                let username = &req_data.username;
+                println!("Could not add user {username}: {err:?}");
+                status::Custom(
+                    Status::InternalServerError,
+                    Status::InternalServerError.reason_lossy(),
+                )
+            }
         }
     }
 }

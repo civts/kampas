@@ -6,6 +6,7 @@ use rand_chacha::ChaCha20Core;
 
 pub(crate) fn generate_random_string(len: u16) -> String {
     let prng = ChaCha20Core::from_entropy();
+    //TODO: cache this value and make it reseed periodically
     let mut reseeding_rng = ReseedingRng::new(prng, 0, OsRng); //Reseeding
     let mut random_string = String::new();
 

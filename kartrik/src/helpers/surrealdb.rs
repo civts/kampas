@@ -5,7 +5,7 @@ use surrealdb::sql::Thing;
 use surrealdb::Surreal;
 
 use crate::models::control::Control;
-use crate::models::token::Token;
+use crate::models::token::AuthToken;
 use crate::models::user::User;
 
 #[derive(Debug, Deserialize)]
@@ -71,7 +71,7 @@ pub(crate) async fn get_user(
     Ok(user)
 }
 
-pub(crate) async fn add_token(token: &Token, db: &Surreal<Client>) -> surrealdb::Result<()> {
+pub(crate) async fn add_token(token: &AuthToken, db: &Surreal<Client>) -> surrealdb::Result<()> {
     let _created: Record = db
         .create(("token", &token.username))
         .content(&token)
@@ -80,11 +80,23 @@ pub(crate) async fn add_token(token: &Token, db: &Surreal<Client>) -> surrealdb:
 }
 
 pub(crate) async fn get_token(
-    username: &str,
+    token: &str,
     db: &Surreal<Client>,
-) -> surrealdb::Result<Option<Token>> {
-    let token: Option<Token> = db.select(("token", username)).await?;
-    Ok(token)
+) -> surrealdb::Result<Option<AuthToken>> {
+    let mut token_opt = db
+        .query("SELECT * FROM token WHERE token = $tk")
+        .bind(("tk", token))
+        .await?;
+
+    let token_res: Result<Option<AuthToken>, surrealdb::Error> = token_opt.take(0);
+    token_res
+}
+
+pub(crate) async fn delete_token(token: &AuthToken, db: &Surreal<Client>) -> surrealdb::Result<()> {
+    db.query("DELETE * FROM token WHERE token = $tk")
+        .bind(("tk", &token.token))
+        .await?;
+    Ok(())
 }
 
 // pub(crate) async fn update_control(db: Surreal<Client>) -> surrealdb::Result<Vec<Record>> {

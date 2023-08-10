@@ -4,15 +4,15 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(crate = "rocket::serde")]
-pub(crate) struct Token {
+pub(crate) struct AuthToken {
     pub(crate) token: String,
     pub(crate) username: String,
     pub(crate) expiry: DateTime<Utc>,
 }
 
-impl Token {
+impl AuthToken {
     pub(crate) fn new(username: &String) -> Self {
-        Token {
+        AuthToken {
             username: username.clone(),
             token: generate_random_string(64),
             expiry: chrono::offset::Utc::now()

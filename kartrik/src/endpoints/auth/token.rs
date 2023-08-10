@@ -2,7 +2,7 @@ use crate::helpers::cryptography::hash_salted_password;
 use crate::helpers::surrealdb::add_token;
 use crate::helpers::surrealdb::get_token;
 use crate::helpers::surrealdb::get_user;
-use crate::models::token::Token;
+use crate::models::token::AuthToken;
 use blake3::Hash;
 use rocket::form::Form;
 use rocket::http::Status;
@@ -49,7 +49,7 @@ pub(crate) async fn generate_token(
                     if let Some(token) = previous_token_opt {
                         if token.is_expired() {
                             println!("Token expired, generating a new one");
-                            let token = Token::new(username);
+                            let token = AuthToken::new(username);
                             add_token(&token, db)
                                 .await
                                 .expect("Can add the token to the DB");
@@ -58,7 +58,7 @@ pub(crate) async fn generate_token(
                             status::Custom(Status::Ok, token.token)
                         }
                     } else {
-                        let token = Token::new(username);
+                        let token = AuthToken::new(username);
                         add_token(&token, db)
                             .await
                             .expect("Can add the token to the DB");
