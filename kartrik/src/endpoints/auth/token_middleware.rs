@@ -38,36 +38,44 @@ impl<'r> FromRequest<'r> for AuthToken {
                     AuthTokenError::Missing,
                 ))
             }
-            Some(user_supplied_token) => {
+            Some(authz_header) => {
                 let db = req.guard::<&State<Surreal<Client>>>().await.unwrap();
-                let token_res = get_token(user_supplied_token, db).await;
-                match token_res {
-                    Ok(Some(token)) => {
-                        if token.is_expired() {
-                            println!("The token is expired");
-                            Outcome::Failure((
-                                AuthTokenError::Invalid.to_http_code(),
-                                AuthTokenError::Invalid,
-                            ))
-                        } else {
-                            println!("A valid token is present in the request");
-                            Outcome::Success(token)
+                match authz_header.strip_prefix("Bearer ") {
+                    Some(user_supplied_token) => {
+                        let token_res = get_token(user_supplied_token, db).await;
+                        match token_res {
+                            Ok(Some(token)) => {
+                                if token.is_expired() {
+                                    println!("The token is expired");
+                                    Outcome::Failure((
+                                        AuthTokenError::Invalid.to_http_code(),
+                                        AuthTokenError::Invalid,
+                                    ))
+                                } else {
+                                    println!("A valid token is present in the request");
+                                    Outcome::Success(token)
+                                }
+                            }
+                            Ok(None) => {
+                                println!("Could not find that token in the DB");
+                                Outcome::Failure((
+                                    AuthTokenError::Invalid.to_http_code(),
+                                    AuthTokenError::Invalid,
+                                ))
+                            }
+                            Err(err) => {
+                                println!("Could not query the DB: {err:?}");
+                                Outcome::Failure((
+                                    AuthTokenError::InternalError.to_http_code(),
+                                    AuthTokenError::InternalError,
+                                ))
+                            }
                         }
                     }
-                    Ok(None) => {
-                        println!("Could not find that token in the DB");
-                        Outcome::Failure((
-                            AuthTokenError::Invalid.to_http_code(),
-                            AuthTokenError::Invalid,
-                        ))
-                    }
-                    Err(err) => {
-                        println!("Could not query the DB: {err:?}");
-                        Outcome::Failure((
-                            AuthTokenError::InternalError.to_http_code(),
-                            AuthTokenError::InternalError,
-                        ))
-                    }
+                    None => Outcome::Failure((
+                        AuthTokenError::Missing.to_http_code(),
+                        AuthTokenError::Missing,
+                    )),
                 }
             }
         }

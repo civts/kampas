@@ -3,10 +3,18 @@
 declare global {
 	namespace App {
 		// interface Error {}
-		// interface Locals {}
+		interface Locals {
+			session: Session;
+		}
 		// interface PageData {}
 		// interface Platform {}
 	}
+
+	type Session = {
+		auth_token?: string;
+		username?: string;
+		id: string;
+	};
 }
 
-export {};
+export { Session };

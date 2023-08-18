@@ -1,5 +1,32 @@
-:root{
-  background-color: #13151E;
-  color:white;
-  font-family: Verdana, Geneva, Tahoma, sans-serif;
+:root {
+	background-color: #13151e;
+	color: var(--text-color);
+	font-family: Verdana, Geneva, Tahoma, sans-serif;
+	--text-color: white;
+	--accent: aquamarine;
+	--error: rgb(148, 29, 29);
+}
+
+form {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 1em;
+	input {
+		background-color: rgb(5, 11, 15);
+		color: var(--text-color);
+		padding: 0.5em;
+		border-radius: 0.4em;
+		border: none;
+	}
+	button {
+		padding: 1em 2em;
+		border-radius: 1em;
+		border: none;
+		background-color: var(--accent);
+		cursor: pointer;
+	}
+}
+a {
+	color: var(--accent);
 }

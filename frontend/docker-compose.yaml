@@ -1,0 +1,11 @@
+version: '3.8'
+services:
+  redis:
+    image: redis@sha256:89a2f81cd9f33612e92e2a67ff627ce25a035f9a842fa3af2563d7a20f4512b1
+    container_name: redis
+    ports:
+      - 6379:6379
+    volumes:
+      - ./redis_data:/data
+      - ./redis/redis.conf:/redis.conf:ro
+    command: redis-server /redis.conf

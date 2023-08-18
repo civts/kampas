@@ -18,8 +18,9 @@ execute_with_label() {
 }
 
 execute_with_label "surreal" "cd kartrik; docker compose down; docker compose up" "${colors["yellow"]}"
+execute_with_label "redis" "cd frontend; docker compose down; docker compose up" "${colors["green"]}"
 execute_with_label "backend" "sleep 4; cargo watch -C kartrik -x run" "${colors["blue"]}"
-execute_with_label "frontend" "cd frontend; npm run dev" "${colors["magenta"]}"
+execute_with_label "frontend" "sleep 4; cd frontend; npm run dev" "${colors["magenta"]}"
 
 kill_background_jobs() {
     echo "Terminating"

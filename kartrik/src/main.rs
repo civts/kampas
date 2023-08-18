@@ -12,6 +12,11 @@ use endpoints::{
 };
 use helpers::{cors::CORS, surrealdb::get_client};
 
+#[get("/")]
+pub(crate) fn working() -> &'static str {
+    "Yes, we are up"
+}
+
 #[launch]
 async fn rocket() -> _ {
     let client = get_client().await.unwrap();
@@ -21,6 +26,7 @@ async fn rocket() -> _ {
             routes![add_control, get_controls, upload],
         )
         .mount(auth::BASE, auth::routes())
+        .mount("/", routes![working])
         .attach(CORS)
         .manage(client)
 }

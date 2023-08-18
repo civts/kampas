@@ -29,5 +29,8 @@
     "editor.formatOnSave": true,
     "editor.defaultFormatter": "tamasfe.even-better-toml",
   },
-  "svelte.enable-ts-plugin": true
+  "svelte.enable-ts-plugin": true,
+  "[scss]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  }
 }

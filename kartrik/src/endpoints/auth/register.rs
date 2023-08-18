@@ -25,6 +25,7 @@ pub(crate) async fn register(
 ) -> status::Custom<&str> {
     //Ask the db if the user is already present
     if let Ok(true) = does_user_exist(&req_data.username, db).await {
+        println!("{} already registered", &req_data.username);
         status::Custom(Status::Conflict, "Username already registered")
     } else {
         let salt = generate_random_string(64);
@@ -40,7 +41,10 @@ pub(crate) async fn register(
         )
         .await;
         match add_res {
-            Ok(_) => status::Custom(Status::Ok, "User created"),
+            Ok(_) => {
+                println!("Added new user: {}", &req_data.username);
+                status::Custom(Status::Ok, "User created")
+            }
             Err(err) => {
                 let username = &req_data.username;
                 println!("Could not add user {username}: {err:?}");
