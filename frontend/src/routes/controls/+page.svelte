@@ -1,8 +1,10 @@
 <script lang="ts">
 	import { BACKEND_URL } from '$lib/costants';
-	import type { PageData } from './$types';
+	import type { PageData, ActionData } from './$types';
 
 	export let data: PageData;
+
+	export let form: ActionData;
 </script>
 
 <head>
@@ -21,7 +23,13 @@
 	{/each}
 </ol>
 
-<form action="{BACKEND_URL}/api/v1/controls" method="post">
+{#if form?.success}
+	<p>Successfully added the control!</p>
+{/if}
+{#if form?.reason}
+	<p class="error">Failed: {form?.reason}</p>
+{/if}
+<form action="?/add" method="post">
 	<input type="text" name="title" id="newControl" placeholder="Title" />
 	<input type="text" name="description" placeholder="Description" />
 	<button type="submit">Add</button>

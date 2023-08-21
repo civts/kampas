@@ -27,6 +27,11 @@ form {
 		cursor: pointer;
 	}
 }
+
 a {
 	color: var(--accent);
+}
+
+.error {
+	color: var(--error);
 }

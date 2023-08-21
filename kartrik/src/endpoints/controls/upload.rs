@@ -1,23 +1,29 @@
-use std::io;
-
-use csv::{ReaderBuilder, StringRecord, StringRecordsIter};
-use rocket::fs::TempFile;
-use rocket::response::status::{self, BadRequest};
-use rocket::{form::Form, State};
-use surrealdb::engine::remote::ws::Client;
-use surrealdb::Surreal;
-
+use crate::generate_endpoint_roles;
 use crate::helpers::surrealdb::add_control;
 use crate::models::control::Control;
+use crate::models::{role::Role, user::User};
+use csv::{ReaderBuilder, StringRecord, StringRecordsIter};
+use rocket::fs::TempFile;
+use rocket::http::Status;
+use rocket::request::{FromRequest, Outcome, Request};
+use rocket::response::status::{self, BadRequest};
+use rocket::{form::Form, State};
+use std::collections::HashSet;
+use std::io;
+use surrealdb::engine::remote::ws::Client;
+use surrealdb::Surreal;
 
 #[derive(FromForm)]
 pub(crate) struct UploadFormData<'f> {
     file: TempFile<'f>,
 }
 
+generate_endpoint_roles!(AddControlsRole, { Role::EditControls });
+
 #[post("/upload", format = "multipart/form-data", data = "<form>")]
 pub(crate) async fn upload(
     form: Form<UploadFormData<'_>>,
+    _authz: AddControlsRole,
     db: &State<Surreal<Client>>,
 ) -> Result<String, status::BadRequest<String>> {
     println!("Got a new file {:?}", form.file);

@@ -11,3 +11,4 @@ we got cookies authentication! well, still have to do teh register flow, and I a
 ### Add proper logging
 ### API rate limiting
 ### Add person to company (register)
+https://rocket.rs/v0.5-rc/guide/requests/#guard-transparency

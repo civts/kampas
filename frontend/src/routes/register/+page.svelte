@@ -49,8 +49,4 @@
 		align-items: center;
 		gap: 2em;
 	}
-
-	.error {
-		color: var(--error);
-	}
 </style>
