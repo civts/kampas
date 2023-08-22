@@ -7,4 +7,5 @@ pub(crate) struct Control {
     pub(crate) title: String,
     #[field(validate = len(3..300))]
     pub(crate) description: String,
+    pub(crate) progress: u8,
 }

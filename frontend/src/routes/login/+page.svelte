@@ -2,6 +2,9 @@
 	import { BACKEND_URL } from '$lib/costants';
 </script>
 
+<head>
+	<title>Login</title>
+</head>
 <div>
 	<h1>Login</h1>
 

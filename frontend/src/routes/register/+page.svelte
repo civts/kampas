@@ -16,6 +16,9 @@
 	}
 </script>
 
+<head>
+	<title>Register</title>
+</head>
 <div>
 	<h1>Register</h1>
 

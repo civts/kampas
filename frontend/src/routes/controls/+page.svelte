@@ -10,32 +10,39 @@
 <head>
 	<title>Kartik frontend</title>
 </head>
-<p>Controls to implement:</p>
-<ol>
-	{#each data?.controls || [] as control}
-		<li>
-			<h3>{control.title}</h3>
-			<p>{control.description}</p>
-		</li>
-	{:else}
-		<!-- this block renders when controls.length === 0 -->
-		<p>loading...</p>
-	{/each}
-</ol>
 
-{#if form?.success}
-	<p>Successfully added the control!</p>
-{/if}
-{#if form?.reason}
-	<p class="error">Failed: {form?.reason}</p>
-{/if}
-<form action="?/add" method="post">
-	<input type="text" name="title" id="newControl" placeholder="Title" />
-	<input type="text" name="description" placeholder="Description" />
-	<button type="submit">Add</button>
-</form>
+<section>
+	<h1>Add a new control</h1>
+	<form action="?/add" method="post">
+		<input type="text" name="title" id="newControl" placeholder="Title" />
+		<input type="text" name="description" placeholder="Description" />
+		<button type="submit">Add</button>
+	</form>
+	{#if form?.success}
+		<p>Successfully added the control!</p>
+	{/if}
+	{#if form?.reason}
+		<p class="error">Failed: {form?.reason}</p>
+	{/if}
 
-<form action="{BACKEND_URL}/api/v1/controls/upload" method="post" enctype="multipart/form-data">
-	<input name="file" type="file" accept="text/csv" />
-	<input type="submit" value="upload" />
-</form>
+	<h1>Import controls from file</h1>
+	<form action="{BACKEND_URL}/api/v1/controls/upload" method="post" enctype="multipart/form-data">
+		<input name="file" type="file" accept="text/csv" />
+		<button type="submit">Upload</button>
+	</form>
+</section>
+
+<section>
+	<p>Controls to implement:</p>
+	<ol>
+		{#each data?.controls || [] as control}
+			<li>
+				<h3>{control.title}</h3>
+				<p>{control.description}</p>
+			</li>
+		{:else}
+			<!-- this block renders when controls.length === 0 -->
+			<p>loading...</p>
+		{/each}
+	</ol>
+</section>
