@@ -1,6 +1,5 @@
 <script lang="ts">
-	import BarChart from '../components/bar_chart.svelte';
-	import Navbar from '../components/navbar.svelte';
+	import BarChart from '../../components/bar_chart.svelte';
 	import type { PageData } from './$types';
 
 	export let data: PageData;
@@ -18,8 +17,6 @@
 <head>
 	<title>Kartik frontend</title>
 </head>
-
-<Navbar data={{ user: data.user, identicon_data: data.user_hash }} />
 
 {#if data?.user}
 	<p>The company has {controls_count} controls</p>

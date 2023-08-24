@@ -1,16 +1,12 @@
 import { getSessionFromCookiesOrCreate } from '$lib/session_cookies';
 import { createHash } from 'crypto';
-import { get_controls } from '$lib/remote/controls';
 
 export async function load({ cookies }) {
 	const session = await getSessionFromCookiesOrCreate(cookies);
 
-	const controls = await get_controls(session);
-
 	return {
 		user: session.username,
-		user_hash: get_username_hash(session.username || 'none'),
-		controls
+		user_hash: get_username_hash(session.username || 'none')
 	};
 
 	function get_username_hash(username: string) {
