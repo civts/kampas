@@ -1,6 +1,8 @@
 use crate::{
     generate_endpoint_roles,
-    helpers::surrealdb::{add_control as add_controll, get_controls as get_controlss},
+    helpers::surrealdb::{
+        add_control as add_controll, get_control as get_controll, get_controls as get_controlss,
+    },
     models::{control::Control, role::Role, user::User},
 };
 use rocket::request::{FromRequest, Outcome, Request};
@@ -34,10 +36,40 @@ pub(crate) async fn get_controls(
     let controls_res = get_controlss(db).await;
     println!("{} is requesting the controls", user.username);
     match controls_res {
-        Ok(controls) => status::Custom(Status::Ok, serde_json::to_string(&controls).unwrap()),
-        Err(_) => status::Custom(
-            Status::InternalServerError,
-            "Internal Server Error".to_string(),
+        Ok(controls) => status::Custom(
+            Status::Ok,
+            serde_json::to_string(&controls).expect("can serialize the controls to JSON"),
         ),
+        Err(err) => {
+            println!("Something went wrong getting the controls: {}", err);
+            status::Custom(
+                Status::InternalServerError,
+                "Internal Server Error".to_string(),
+            )
+        }
+    }
+}
+
+#[get("/<control_id>")]
+pub(crate) async fn get_control(
+    user: User,
+    control_id: String,
+    _required_roles: GetControlsRole,
+    db: &State<Surreal<Client>>,
+) -> status::Custom<String> {
+    let controls_res = get_controll(db, control_id).await;
+    println!("{} is requesting the controls", user.username);
+    match controls_res {
+        Ok(control) => status::Custom(
+            Status::Ok,
+            serde_json::to_string(&control).expect("can serialize the control to JSON"),
+        ),
+        Err(err) => {
+            println!("Something went wrong getting the controls: {}", err);
+            status::Custom(
+                Status::InternalServerError,
+                "Internal Server Error".to_string(),
+            )
+        }
     }
 }

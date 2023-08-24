@@ -32,5 +32,6 @@
   "svelte.enable-ts-plugin": true,
   "[scss]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode"
-  }
+  },
+  "editor.wordWrap": "on"
 }

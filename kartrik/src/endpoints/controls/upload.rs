@@ -94,10 +94,7 @@ fn control_from_record(record: StringRecord) -> Option<Control> {
     let description_opt = record.get(1);
     if let Some(title) = title_opt {
         if let Some(desc) = description_opt {
-            return Some(Control {
-                title: title.to_string(),
-                description: desc.to_string(),
-            });
+            return Some(Control::new(title, desc));
         }
     }
     None

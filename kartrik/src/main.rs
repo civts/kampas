@@ -6,7 +6,7 @@ mod models;
 use endpoints::{
     auth,
     controls::{
-        controls::{add_control, get_controls},
+        controls::{add_control, get_control, get_controls},
         upload::upload,
     },
 };
@@ -23,7 +23,7 @@ async fn rocket() -> _ {
     rocket::build()
         .mount(
             "/api/v1/controls",
-            routes![add_control, get_controls, upload],
+            routes![add_control, get_controls, upload, get_control],
         )
         .mount(auth::BASE, auth::routes())
         .mount("/", routes![working])

@@ -39,6 +39,7 @@
 			<li>
 				<h3>{control.title}</h3>
 				<p>{control.description}</p>
+				<a href="/controls/{control.identifier}"> Details </a>
 			</li>
 		{:else}
 			<!-- this block renders when controls.length === 0 -->
