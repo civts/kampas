@@ -7,6 +7,5 @@
 
 {#if control}
 	<h1>{control.title}</h1>
-	<p>{control.identifier}</p>
 	<p>{control.description}</p>
 {/if}

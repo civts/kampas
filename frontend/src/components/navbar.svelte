@@ -14,20 +14,15 @@
 </script>
 
 <nav>
-	<a href="/">
-		<img src="/favicon.svg" alt="Kartik logo" height="50px" />
-		Kartik
+	<a class="rowcenter" href="/">
+		<img src="/favicon.svg" alt="Kartik logo" />
+		<p>Kartik</p>
 	</a>
 
-	<div>
+	<div class="rowcenter">
 		{#if data?.user}
-			<p>{data.user}</p>
-			<img
-				width="50"
-				height="50"
-				src="data:image/svg+xml;base64,{identicon_data}"
-				alt="{data.user}'s profile picture"
-			/>
+			{data.user}
+			<img src="data:image/svg+xml;base64,{identicon_data}" alt="{data.user}'s profile picture" />
 		{:else}
 			<a href="/login">Login</a>
 		{/if}
@@ -39,20 +34,41 @@
 		display: flex;
 		justify-content: space-between;
 		align-items: center;
+		p {
+			margin: 0;
+		}
 	}
+
 	img {
 		border-radius: 50%;
+		width: 2.5rem;
+		height: 2.5rem;
 	}
+
+	a {
+		color: var(--text-color);
+		text-decoration: unset;
+	}
+
 	div {
 		display: flex;
 		align-content: center;
-		gap: 1em;
+		gap: 1rem;
 		a {
-			background-color: var(--bg2);
-			padding: 0.7em 1.3em;
-			border-radius: 0.5em;
+			padding: 0.7rem 1.3rem;
+			border-radius: 0.5rem;
 			align-self: center;
 			text-decoration: unset;
+		}
+	}
+
+	.rowcenter {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		gap: 1rem;
+		p {
+			font-size: 1.5rem;
 		}
 	}
 </style>
