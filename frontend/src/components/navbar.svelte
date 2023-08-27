@@ -19,6 +19,10 @@
 		<p>Kartik</p>
 	</a>
 
+	<div>
+		<a class="addcontrol" href="new_control">Add control</a>
+	</div>
+
 	<div class="rowcenter">
 		{#if data?.user}
 			{data.user}
@@ -56,7 +60,6 @@
 		gap: 1rem;
 		a {
 			padding: 0.7rem 1.3rem;
-			border-radius: 0.5rem;
 			align-self: center;
 			text-decoration: unset;
 		}
@@ -70,5 +73,14 @@
 		p {
 			font-size: 1.5rem;
 		}
+	}
+
+	.addcontrol {
+		background-color: var(--bg2);
+		border: none;
+		color: var(--text-color);
+		border-radius: 0.5rem;
+		padding: 0.75rem 1rem;
+		position: relative;
 	}
 </style>
