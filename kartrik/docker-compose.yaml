@@ -4,5 +4,7 @@ services:
     container_name: surrealdb
     ports:
       - 8002:8000
+    volumes:
+      - ./data:/data
     image: surrealdb/surrealdb:latest
-    command: start --log trace --user root --pass root memory
+    command: start --log trace --user root --pass root file:/data/kartik.db

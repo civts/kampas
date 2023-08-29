@@ -7,17 +7,28 @@ use crate::{
 };
 use rocket::request::{FromRequest, Outcome, Request};
 use rocket::{form::Form, http::Status, response::status, serde::json::serde_json, State};
+use serde::{Deserialize, Serialize};
 use std::collections::HashSet;
 use surrealdb::{engine::remote::ws::Client, Surreal};
+
+#[derive(Debug, Clone, Serialize, Deserialize, FromForm)]
+#[serde(crate = "rocket::serde")]
+pub(crate) struct ControlFormData {
+    #[field(validate = len(3..30))]
+    pub(crate) title: String,
+    #[field(validate = len(3..300))]
+    pub(crate) description: String,
+}
 
 generate_endpoint_roles!(EditControlRoles, { Role::EditControls, Role::GetControls });
 #[post("/", data = "<form_data>")]
 pub(crate) async fn add_control(
-    form_data: Form<Control>,
+    form_data: Form<ControlFormData>,
     _r: EditControlRoles,
     db: &State<Surreal<Client>>,
 ) -> String {
-    let control = form_data.into_inner();
+    let control_form_data = form_data.into_inner();
+    let control = Control::new(&control_form_data.title, &control_form_data.description);
     match add_controll(control.clone(), db).await {
         Ok(_) => {
             format!("Added {:?}!", &control)

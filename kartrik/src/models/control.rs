@@ -1,15 +1,14 @@
+use crate::helpers::cryptography::generate_random_string;
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
+use ts_rs::TS;
 
-use crate::helpers::cryptography::generate_random_string;
-
-#[derive(Debug, Clone, Serialize, Deserialize, FromForm)]
+#[derive(Debug, Clone, Serialize, TS, Deserialize)]
 #[serde(crate = "rocket::serde")]
+#[ts(export, export_to = "../frontend/src/lib/models/bindings/")]
 pub(crate) struct Control {
     pub(crate) identifier: String,
-    #[field(validate = len(3..30))]
     pub(crate) title: String,
-    #[field(validate = len(3..300))]
     pub(crate) description: String,
     pub(crate) progress: u8,
     pub(crate) created_at: String,

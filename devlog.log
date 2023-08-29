@@ -12,3 +12,5 @@ we got cookies authentication! well, still have to do teh register flow, and I a
 ### API rate limiting
 ### Add person to company (register)
 https://rocket.rs/v0.5-rc/guide/requests/#guard-transparency
+
+used https://surrealist.app/ and https://serveo.net/ to be able to debug surrealdb

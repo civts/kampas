@@ -1,6 +1,6 @@
 use crate::helpers::cryptography::hash_salted_password;
 use crate::helpers::surrealdb::add_token;
-use crate::helpers::surrealdb::get_token;
+use crate::helpers::surrealdb::get_token_for_user;
 use crate::helpers::surrealdb::get_user;
 use crate::models::token::AuthToken;
 use blake3::Hash;
@@ -45,7 +45,7 @@ pub(crate) async fn generate_token(
                 ))
                 .expect("This must be a valid hash, else we can't program");
                 if password_hash == db_password_hash {
-                    let previous_token_opt = get_token(username, db).await.unwrap_or(None);
+                    let previous_token_opt = get_token_for_user(username, db).await.unwrap_or(None);
                     if let Some(token) = previous_token_opt {
                         if token.is_expired() {
                             println!("Token expired, generating a new one");

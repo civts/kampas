@@ -1,4 +1,4 @@
-import { fail, redirect, text } from '@sveltejs/kit';
+import { fail, redirect } from '@sveltejs/kit';
 import type { Actions } from './$types';
 import { BACKEND_URL } from '$lib/costants';
 import { getSessionFromCookiesOrCreate } from '$lib/session_cookies';

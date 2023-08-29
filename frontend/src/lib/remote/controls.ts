@@ -1,4 +1,6 @@
 import { BACKEND_URL } from '$lib/costants';
+import type { Control } from '$lib/models/bindings/Control';
+import type { Tag } from '$lib/models/bindings/Tag';
 
 export async function get_controls(session: Session) {
 	try {
@@ -10,6 +12,22 @@ export async function get_controls(session: Session) {
 
 		let controls: Control[] = await controls_resp.json();
 		return controls;
+	} catch (error) {
+		console.error('Error loading controls: ', error);
+		return [];
+	}
+}
+
+export async function get_tags(session: Session) {
+	try {
+		const controls_resp = await fetch(BACKEND_URL + '/api/v1/tags', {
+			headers: {
+				Authorization: `Bearer ${session.auth_token}`
+			}
+		});
+
+		let tags: Tag[] = await controls_resp.json();
+		return tags;
 	} catch (error) {
 		console.error('Error loading controls: ', error);
 		return [];

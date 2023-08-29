@@ -1,5 +1,8 @@
 <script lang="ts">
-	import { BACKEND_URL } from '$lib/costants';
+	import { enhance } from '$app/forms';
+	import type { ActionData } from './$types';
+
+	export let form: ActionData;
 </script>
 
 <head>
@@ -7,13 +10,18 @@
 </head>
 <div>
 	<h1>Login</h1>
+	<form method="POST" use:enhance>
+		{#if form?.username_error}
+			<p class="error">{form.username_error}</p>
+		{/if}
+		<input type="text" name="username" placeholder="Username" required />
+		{#if form?.password_error}
+			<p class="error">{form.password_error}</p>
+		{/if}
+		<input type="password" name="password" placeholder="Password" required />
 
-	<form action="{BACKEND_URL}/api/v1/auth/login" method="post">
-		<input type="text" name="username" id="newControl" placeholder="Username" />
-		<input type="password" name="password" placeholder="Password" />
 		<button type="submit">Login</button>
 	</form>
-
 	<p>Or register <a href="/register">here</a></p>
 </div>
 

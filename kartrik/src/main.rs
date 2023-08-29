@@ -9,6 +9,10 @@ use endpoints::{
         controls::{add_control, get_control, get_controls},
         upload::upload,
     },
+    tags::{
+        tag_control::add_tag_to_control,
+        tags::{add_tag, get_tags, get_tags_for_control},
+    },
 };
 use helpers::{cors::CORS, surrealdb::get_client};
 
@@ -24,6 +28,10 @@ async fn rocket() -> _ {
         .mount(
             "/api/v1/controls",
             routes![add_control, get_controls, upload, get_control],
+        )
+        .mount(
+            "/api/v1/tags",
+            routes![add_tag, get_tags, get_tags_for_control, add_tag_to_control],
         )
         .mount(auth::BASE, auth::routes())
         .mount("/", routes![working])

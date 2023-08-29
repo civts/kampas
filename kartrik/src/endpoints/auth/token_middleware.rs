@@ -72,10 +72,13 @@ impl<'r> FromRequest<'r> for AuthToken {
                             }
                         }
                     }
-                    None => Outcome::Failure((
-                        AuthTokenError::Missing.to_http_code(),
-                        AuthTokenError::Missing,
-                    )),
+                    None => {
+                        println!("The request is missing the authorization header");
+                        Outcome::Failure((
+                            AuthTokenError::Missing.to_http_code(),
+                            AuthTokenError::Missing,
+                        ))
+                    }
                 }
             }
         }

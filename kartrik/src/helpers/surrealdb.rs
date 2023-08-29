@@ -1,12 +1,12 @@
+use crate::models::control::Control;
+use crate::models::tag::Tag;
+use crate::models::token::AuthToken;
+use crate::models::user::User;
 use serde::Deserialize;
 use surrealdb::engine::remote::ws::{Client, Ws};
 use surrealdb::opt::auth::Root;
-use surrealdb::sql::Thing;
+use surrealdb::sql::{Id, Thing};
 use surrealdb::Surreal;
-
-use crate::models::control::Control;
-use crate::models::token::AuthToken;
-use crate::models::user::User;
 
 #[derive(Debug, Deserialize)]
 struct Record {
@@ -91,6 +91,15 @@ pub(crate) async fn add_token(token: &AuthToken, db: &Surreal<Client>) -> surrea
     Ok(())
 }
 
+pub(crate) async fn get_token_for_user(
+    user: &str,
+    db: &Surreal<Client>,
+) -> surrealdb::Result<Option<AuthToken>> {
+    let token: Option<AuthToken> = db.select(("token", user)).await?;
+
+    Ok(token)
+}
+
 pub(crate) async fn get_token(
     token: &str,
     db: &Surreal<Client>,
@@ -109,6 +118,64 @@ pub(crate) async fn delete_token(token: &AuthToken, db: &Surreal<Client>) -> sur
         .bind(("tk", &token.token))
         .await?;
     Ok(())
+}
+
+pub(crate) async fn add_tag(tag: Tag, db: &Surreal<Client>) -> surrealdb::Result<String> {
+    let record: Record = db.create(("tag", &tag.identifier)).content(tag).await?;
+    Ok(record.id.to_string())
+}
+
+pub(crate) async fn get_tags(db: &Surreal<Client>) -> surrealdb::Result<Vec<Tag>> {
+    let tags: Vec<Tag> = db.select("tag").await?;
+
+    Ok(tags)
+}
+
+pub(crate) async fn get_tags_for_control(
+    control_id: &str,
+    db: &Surreal<Client>,
+) -> surrealdb::Result<Vec<Tag>> {
+    // Should be SELECT * FROM tag WHERE id INSIDE $control_id<-tags.in; with control_id like control:123, but it fails that way
+    let tags: Vec<Tag> = db
+        // .query("SELECT * FROM tag WHERE id INSIDE ((SELECT id FROM control WHERE identifier = $control_id)[0].id)<-tags.in")
+        .query("SELECT * FROM tag WHERE id INSIDE $control_id<-tags.in")
+        .bind((
+            "control_id",
+            Thing {
+                id: Id::String(control_id.to_string()),
+                tb: "control".to_string(),
+            },
+        ))
+        .await?
+        .take(0)?;
+
+    Ok(tags)
+}
+
+pub(crate) async fn tag_control(
+    control_id: &str,
+    tag_id: &str,
+    db: &Surreal<Client>,
+) -> surrealdb::Result<()> {
+    let response = db
+        // .query("RELATE ((SELECT id FROM tag WHERE identifier = $tid)[0].id)->tags->((SELECT id FROM control WHERE identifier = $cid)[0].id)")
+        .query("RELATE $tid->tags->$cid")
+        .bind((
+            "cid",
+            Thing {
+                id: Id::String(control_id.to_string()),
+                tb: "control".to_string(),
+            },
+        ))
+        .bind((
+            "tid",
+            Thing {
+                id: Id::String(tag_id.to_string()),
+                tb: "tag".to_string(),
+            },
+        ))
+        .await?;
+    response.check().map(|_| ())
 }
 
 // pub(crate) async fn update_control(db: Surreal<Client>) -> surrealdb::Result<Vec<Record>> {

@@ -1,9 +1,8 @@
 <script lang="ts">
-	import type { PageData, ActionData } from './$types';
+	import ControlListItem from '../../../components/control_list_item.svelte';
+	import type { PageData } from './$types';
 
 	export let data: PageData;
-
-	export let form: ActionData;
 </script>
 
 <head>
@@ -15,12 +14,9 @@
 	<ol>
 		{#each data?.controls || [] as control}
 			<li>
-				<h3>{control.title}</h3>
-				<p>{control.description}</p>
-				<a href="/controls/{control.identifier}"> Details </a>
+				<ControlListItem {control} />
 			</li>
 		{:else}
-			<!-- this block renders when controls.length === 0 -->
 			<p>loading...</p>
 		{/each}
 	</ol>
