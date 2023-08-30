@@ -9,6 +9,9 @@ use endpoints::{
         controls::{add_control, get_control, get_controls},
         upload::upload,
     },
+    metrics::metrics::{
+        add_metric, associate_metric, get_metric, get_metrics, get_metrics_for_control,
+    },
     tags::{
         tag_control::add_tag_to_control,
         tags::{add_tag, get_tags, get_tags_for_control},
@@ -32,6 +35,16 @@ async fn rocket() -> _ {
         .mount(
             "/api/v1/tags",
             routes![add_tag, get_tags, get_tags_for_control, add_tag_to_control],
+        )
+        .mount(
+            "/api/v1/metrics",
+            routes![
+                add_metric,
+                get_metrics,
+                get_metric,
+                get_metrics_for_control,
+                associate_metric
+            ],
         )
         .mount(auth::BASE, auth::routes())
         .mount("/", routes![working])

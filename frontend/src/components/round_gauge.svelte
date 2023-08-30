@@ -58,7 +58,7 @@
 
 <style>
 	.background-arc {
-		fill: var(--bg2);
+		fill: var(--input-bg);
 	}
 
 	.progress-arc {

@@ -65,7 +65,7 @@
 		border-color: var(--text-color);
 		border-width: 1px;
 		border-style: solid;
-		background-color: var(--bg2);
+		background-color: var(--input-bg);
 		padding: 2rem 3rem;
 	}
 
@@ -80,7 +80,7 @@
 	}
 
 	button {
-		background-color: var(--bg2);
+		background-color: var(--input-bg);
 		border: none;
 		color: var(--text-color);
 		border-radius: 0.5rem;

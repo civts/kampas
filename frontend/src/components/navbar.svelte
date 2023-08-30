@@ -76,7 +76,7 @@
 	}
 
 	.addcontrol {
-		background-color: var(--bg2);
+		background-color: var(--input-bg);
 		border: none;
 		color: var(--text-color);
 		border-radius: 0.5rem;

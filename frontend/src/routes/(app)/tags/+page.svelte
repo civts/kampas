@@ -2,6 +2,7 @@
 	import Tag from '../../../components/tag.svelte';
 	import type { PageData, ActionData } from './$types';
 	import { Color, ColorInput } from 'color-picker-svelte';
+	import { enhance } from '$app/forms';
 
 	export let data: PageData;
 	export let form: ActionData;
@@ -34,7 +35,7 @@
 
 <section>
 	<h1>Add a new tag</h1>
-	<form action="?/add_tag" method="post">
+	<form action="?/add_tag" method="post" use:enhance>
 		<input type="text" name="name" placeholder="Name" />
 		<input hidden bind:value={color_hex} type="text" name="color_hex" placeholder="Color" />
 		<div class="picker-container">
@@ -52,7 +53,7 @@
 
 <style lang="scss">
 	.picker-container {
-		--picker-background: var(--bg2);
+		--picker-background: var(--input-bg);
 	}
 
 	li {

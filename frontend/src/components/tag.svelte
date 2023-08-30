@@ -6,7 +6,7 @@
 	let elem: HTMLElement;
 	onMount(() => {
 		elem.style.backgroundColor = `#${tag.color_hex}`;
-		const textColor = isColorLight(tag.color_hex) ? 'var(--bg2)' : 'var(--text-color)';
+		const textColor = isColorLight(tag.color_hex) ? 'var(--input-bg)' : 'var(--text-color)';
 		elem.style.color = textColor;
 	});
 

@@ -26,14 +26,18 @@ pub(crate) async fn add_control(
     form_data: Form<ControlFormData>,
     _r: EditControlRoles,
     db: &State<Surreal<Client>>,
-) -> String {
+) -> status::Custom<String> {
     let control_form_data = form_data.into_inner();
     let control = Control::new(&control_form_data.title, &control_form_data.description);
     match add_controll(control.clone(), db).await {
-        Ok(_) => {
-            format!("Added {:?}!", &control)
+        Ok(_) => status::Custom(Status::Ok, format!("Added {:?}!", &control).to_string()),
+        Err(err) => {
+            println!("Could not insert the new control in the database: {err:?}");
+            status::Custom(
+                Status::InternalServerError,
+                "Internal Server Error".to_string(),
+            )
         }
-        Err(_) => "nope".to_string(),
     }
 }
 

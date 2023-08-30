@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { enhance } from '$app/forms';
 	import { BACKEND_URL } from '$lib/costants';
 	import type { PageData, ActionData } from './$types';
 
@@ -28,7 +29,12 @@
 
 <section>
 	<h1>Import controls from file</h1>
-	<form action="{BACKEND_URL}/api/v1/controls/upload" method="post" enctype="multipart/form-data">
+	<form
+		action="{BACKEND_URL}/api/v1/controls/upload"
+		method="post"
+		enctype="multipart/form-data"
+		use:enhance
+	>
 		<input class="drop-zone" name="file" type="file" accept="text/csv" />
 		<button type="submit">Upload</button>
 	</form>

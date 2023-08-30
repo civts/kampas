@@ -1,4 +1,5 @@
 use crate::models::control::Control;
+use crate::models::metric::Metric;
 use crate::models::tag::Tag;
 use crate::models::token::AuthToken;
 use crate::models::user::User;
@@ -135,7 +136,6 @@ pub(crate) async fn get_tags_for_control(
     control_id: &str,
     db: &Surreal<Client>,
 ) -> surrealdb::Result<Vec<Tag>> {
-    // Should be SELECT * FROM tag WHERE id INSIDE $control_id<-tags.in; with control_id like control:123, but it fails that way
     let tags: Vec<Tag> = db
         // .query("SELECT * FROM tag WHERE id INSIDE ((SELECT id FROM control WHERE identifier = $control_id)[0].id)<-tags.in")
         .query("SELECT * FROM tag WHERE id INSIDE $control_id<-tags.in")
@@ -174,6 +174,81 @@ pub(crate) async fn tag_control(
                 tb: "tag".to_string(),
             },
         ))
+        .await?;
+    response.check().map(|_| ())
+}
+
+pub(crate) async fn add_metric(metric: Metric, db: &Surreal<Client>) -> surrealdb::Result<String> {
+    // Create a new metric with a random id
+    let _created: Record = db
+        .create(("metric", &metric.identifier))
+        .content(metric)
+        .await?;
+    match _created.id.id {
+        Id::String(id_str) => Ok(id_str),
+        _ => panic!("We don't do that here. We shall only use String IDs"),
+    }
+}
+
+pub(crate) async fn get_metrics(db: &Surreal<Client>) -> surrealdb::Result<Vec<Metric>> {
+    // Select all records
+    let metrics: Vec<Metric> = db.select("metric").await?;
+
+    Ok(metrics)
+}
+
+pub(crate) async fn get_metrics_for_control(
+    control_id: &str,
+    db: &Surreal<Client>,
+) -> surrealdb::Result<Vec<Metric>> {
+    let metrics: Vec<Metric> = db
+        .query("SELECT * FROM metric WHERE id INSIDE $control_id<-measures.in")
+        .bind((
+            "control_id",
+            Thing {
+                id: Id::String(control_id.to_string()),
+                tb: "control".to_string(),
+            },
+        ))
+        .await?
+        .take(0)?;
+
+    Ok(metrics)
+}
+
+pub(crate) async fn get_metric(
+    db: &Surreal<Client>,
+    id: String,
+) -> surrealdb::Result<Option<Metric>> {
+    let metric: Option<Metric> = db.select(("metric", id)).await?;
+
+    Ok(metric)
+}
+
+pub(crate) async fn associate_metric(
+    metric_id: &str,
+    control_id: &str,
+    coverage: u8,
+    db: &Surreal<Client>,
+) -> surrealdb::Result<()> {
+    let response = db
+        // .query("RELATE ((SELECT id FROM tag WHERE identifier = $tid)[0].id)->tags->((SELECT id FROM control WHERE identifier = $cid)[0].id)")
+        .query("RELATE $mid->measures->$cid SET coverage = $coverage")
+        .bind((
+            "cid",
+            Thing {
+                id: Id::String(control_id.to_string()),
+                tb: "control".to_string(),
+            },
+        ))
+        .bind((
+            "mid",
+            Thing {
+                id: Id::String(metric_id.to_string()),
+                tb: "metric".to_string(),
+            },
+        ))
+        .bind(("coverage", coverage))
         .await?;
     response.check().map(|_| ())
 }

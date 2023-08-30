@@ -1,9 +1,10 @@
 :root {
 	--text-color: white;
-	--accent: aquamarine;
+	--accent: #d5fff3;
 	--error: rgb(148, 29, 29);
 	--bg1: #13151e;
-	--bg2: rgb(5, 11, 15);
+	--bg2: #4b644a;
+	--input-bg: rgb(5, 11, 15);
 
 	background-color: var(--bg1);
 	color: var(--text-color);
@@ -20,7 +21,7 @@ form {
 	align-items: center;
 	gap: 1em;
 	input {
-		background-color: var(--bg2);
+		background-color: var(--input-bg);
 		color: var(--text-color);
 		padding: 0.5em;
 		border-radius: 0.4em;
