@@ -13,8 +13,11 @@ use crate::{
     models::control::Control,
 };
 use ::surrealdb::{engine::remote::ws::Client, Surreal};
-use rocket::request::{FromRequest, Outcome, Request};
 use rocket::{form::Form, http::Status, response::status, State};
+use rocket::{
+    request::{FromRequest, Outcome, Request},
+    serde::json::serde_json,
+};
 use std::collections::HashSet;
 use std::collections::{BTreeMap, HashMap};
 
@@ -26,7 +29,7 @@ pub(crate) struct CreateRankingFormData {
     minimum_coverage: u8,
 }
 
-generate_endpoint_roles!(CreateRankingRole, { Role::CreateRank });
+generate_endpoint_roles!(CreateRankingRole, { Role::CreateRanking });
 #[post("/", data = "<form_data>")]
 pub(crate) async fn new_ranking(
     form_data: Form<CreateRankingFormData>,
@@ -62,6 +65,54 @@ pub(crate) async fn new_ranking(
             status::Custom(
                 Status::InternalServerError,
                 Status::InternalServerError.reason_lossy().into(),
+            )
+        }
+    }
+}
+
+generate_endpoint_roles!(GetRakingsRole, { Role::GetRankings });
+#[get("/")]
+pub(crate) async fn get_rankings(
+    user: User,
+    _required_roles: GetRakingsRole,
+    db: &State<Surreal<Client>>,
+) -> status::Custom<String> {
+    let rankings_res = surrealdb::get_rankings(db).await;
+    println!("{} is requesting the rankings", user.username);
+    match rankings_res {
+        Ok(rankings) => status::Custom(
+            Status::Ok,
+            serde_json::to_string(&rankings).expect("can serialize the rankings to JSON"),
+        ),
+        Err(err) => {
+            println!("Something went wrong getting the rankings: {}", err);
+            status::Custom(
+                Status::InternalServerError,
+                "Internal Server Error".to_string(),
+            )
+        }
+    }
+}
+
+#[get("/<ranking_id>")]
+pub(crate) async fn get_ranking(
+    user: User,
+    ranking_id: String,
+    _required_roles: GetRakingsRole,
+    db: &State<Surreal<Client>>,
+) -> status::Custom<String> {
+    println!("{} is requesting the ranking {ranking_id}", user.username);
+    let rankings_res = surrealdb::get_ranking(&ranking_id, db).await;
+    match rankings_res {
+        Ok(ranking) => status::Custom(
+            Status::Ok,
+            serde_json::to_string(&ranking).expect("can serialize the ranking to JSON"),
+        ),
+        Err(err) => {
+            println!("Something went wrong getting the rankings: {}", err);
+            status::Custom(
+                Status::InternalServerError,
+                "Internal Server Error".to_string(),
             )
         }
     }

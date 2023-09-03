@@ -54,8 +54,12 @@ pub(crate) enum Role {
     AssociateMetrics,
 
     /// Can create a new ranking
-    #[serde(rename = "CreateRank")]
-    CreateRank,
+    #[serde(rename = "CreateRanking")]
+    CreateRanking,
+
+    /// Can see the rankings
+    #[serde(rename = "GetRankings")]
+    GetRankings,
 
     /// Can see the audit trace for all regular users
     #[serde(rename = "SeeUserActivity")]

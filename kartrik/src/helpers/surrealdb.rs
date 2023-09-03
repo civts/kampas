@@ -309,6 +309,24 @@ pub(crate) async fn add_ranking(
         _ => panic!("We don't do that here. We shall only use String IDs"),
     }
 }
+
+pub(crate) async fn get_rankings(db: &Surreal<Client>) -> surrealdb::Result<Vec<Ranking>> {
+    // Select all records
+    let rankings: Vec<Ranking> = db.select("ranking").await?;
+
+    Ok(rankings)
+}
+
+pub(crate) async fn get_ranking(
+    id: &str,
+    db: &Surreal<Client>,
+) -> surrealdb::Result<Option<Ranking>> {
+    // Select all records
+    let rankings: Option<Ranking> = db.select(("ranking", id)).await?;
+
+    Ok(rankings)
+}
+
 // pub(crate) async fn update_control(db: Surreal<Client>) -> surrealdb::Result<Vec<Record>> {
 //     // Update a control record with a specific id
 //     let updated: Record = db
