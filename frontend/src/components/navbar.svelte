@@ -20,7 +20,8 @@
 	</a>
 
 	<div>
-		<a class="addcontrol" href="new_control">Add control</a>
+		<a class="addcontrol" href="/new_control">Add control</a>
+		<a class="addcontrol" href="/new_ranking">Create ranking</a>
 	</div>
 
 	<div class="rowcenter">

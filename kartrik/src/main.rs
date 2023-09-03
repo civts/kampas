@@ -12,6 +12,7 @@ use endpoints::{
     metrics::metrics::{
         add_metric, associate_metric, get_metric, get_metrics, get_metrics_for_control,
     },
+    rankings::ranking::new_ranking,
     tags::{
         tag_control::add_tag_to_control,
         tags::{add_tag, get_tags, get_tags_for_control},
@@ -46,6 +47,7 @@ async fn rocket() -> _ {
                 associate_metric
             ],
         )
+        .mount("/api/v1/rankings", routes![new_ranking])
         .mount(auth::BASE, auth::routes())
         .mount("/", routes![working])
         .attach(CORS)

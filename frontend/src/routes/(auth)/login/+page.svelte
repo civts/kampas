@@ -10,6 +10,9 @@
 </head>
 <div>
 	<h1>Login</h1>
+	{#if form?.reason}
+		<p class="error">{form.reason}</p>
+	{/if}
 	<form method="POST" use:enhance>
 		{#if form?.username_error}
 			<p class="error">{form.username_error}</p>

@@ -44,7 +44,9 @@ export const actions: Actions = {
 			console.log(session);
 			throw redirect(302, '/');
 		} else {
-			return fail(400, { reason: await login_response.text() });
+			return fail(400, {
+				reason: 'Invalid credentials. Check that the username and password are correct'
+			});
 		}
 	}
 };

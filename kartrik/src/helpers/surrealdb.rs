@@ -1,12 +1,14 @@
 use crate::models::control::Control;
 use crate::models::metric::Metric;
+use crate::models::ranking::Ranking;
 use crate::models::tag::Tag;
 use crate::models::token::AuthToken;
 use crate::models::user::User;
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
+use std::collections::BTreeMap;
 use surrealdb::engine::remote::ws::{Client, Ws};
 use surrealdb::opt::auth::Root;
-use surrealdb::sql::{Id, Thing};
+use surrealdb::sql::{Id, Object, Thing, Value};
 use surrealdb::Surreal;
 
 #[derive(Debug, Deserialize)]
@@ -253,6 +255,60 @@ pub(crate) async fn associate_metric(
     response.check().map(|_| ())
 }
 
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(crate = "rocket::serde")]
+/// Dummy struct to make deserializing from the result in
+/// get_metric_control_association easier
+struct Helper {
+    metric: Thing,
+    control: Thing,
+    coverage: u8,
+}
+
+pub(crate) async fn get_metric_control_association(
+    db: &Surreal<Client>,
+) -> surrealdb::Result<BTreeMap<String, Vec<(String, u8)>>> {
+    let mut response = db
+        .query("SELECT in as metric, out as control, coverage FROM measures")
+        .await?;
+    let results: Vec<Helper> = response.take(0)?;
+    let mut result: BTreeMap<String, Vec<(String, u8)>> = BTreeMap::new();
+    results.iter().for_each(|obj| {
+        let key = match &obj.metric.id {
+            Id::String(str) => str.into(),
+            _ => panic!("A metric's id must be a string"),
+        };
+        let value = match &obj.control.id {
+            Id::String(str) => (str.into(), obj.coverage),
+            _ => panic!("A metric's id must be a string"),
+        };
+        if let Some(prev_value) = result.get_mut(&key) {
+            // If the key is already present, push the value into the existing vector
+            prev_value.push(value);
+        } else {
+            // If the key is not present, insert a new element into the BTreeMap
+            let new_value = vec![value];
+            result.insert(key, new_value);
+        }
+    });
+
+    Ok(result)
+}
+
+pub(crate) async fn add_ranking(
+    ranking: Ranking,
+    db: &Surreal<Client>,
+) -> surrealdb::Result<String> {
+    // Create a new ranking with a random id
+    let _created: Record = db
+        .create(("ranking", &ranking.identifier))
+        .content(ranking)
+        .await?;
+    match _created.id.id {
+        Id::String(id_str) => Ok(id_str),
+        _ => panic!("We don't do that here. We shall only use String IDs"),
+    }
+}
 // pub(crate) async fn update_control(db: Surreal<Client>) -> surrealdb::Result<Vec<Record>> {
 //     // Update a control record with a specific id
 //     let updated: Record = db

@@ -30,12 +30,7 @@ pub(crate) async fn add_metric(
     _r: EditMetricRoles,
     db: &State<Surreal<Client>>,
 ) -> status::Custom<String> {
-    let metric_form_data = form_data.into_inner();
-    let metric = Metric::new(
-        &metric_form_data.title,
-        &metric_form_data.description,
-        metric_form_data.effort,
-    );
+    let metric = Metric::new(&form_data.title, &form_data.description, form_data.effort);
     match add_metricl(metric.clone(), db).await {
         Ok(id) => status::Custom(Status::Ok, format!("{id}").to_string()),
         Err(err) => {
@@ -63,11 +58,10 @@ pub(crate) async fn associate_metric(
     _r: AssociateMetricRoles,
     db: &State<Surreal<Client>>,
 ) -> status::Custom<String> {
-    let metric_form_data = form_data.into_inner();
     let associate_res = associate_metricl(
-        &metric_form_data.metric_id,
-        &metric_form_data.control_id,
-        metric_form_data.coverage,
+        &form_data.metric_id,
+        &form_data.control_id,
+        form_data.coverage,
         db,
     )
     .await;
