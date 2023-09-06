@@ -34,15 +34,19 @@
 			{#if form?.title_error}
 				<p class="error">{form.title_error}</p>
 			{/if}
+			<label for="title">Title</label>
 			<input type="text" name="title" placeholder="Title" />
 			{#if form?.description_error}
 				<p class="error">{form.description_error}</p>
 			{/if}
+			<label for="Description">Description</label>
 			<input type="text" name="description" placeholder="Description" />
 			{#if form?.effort_error}
 				<p class="error">{form.effort_error}</p>
 			{/if}
+			<label for="effort">Effort</label>
 			<input type="number" min="1" name="effort" placeholder="Effort" />
+			<label for="coverage">Coverage</label>
 			<input
 				type="number"
 				min="1"
@@ -77,5 +81,11 @@
 			background: var(--bg2);
 			padding: 1rem 2rem;
 		}
+	}
+	form {
+		display: flex;
+		width: 300px;
+		margin: 0rem auto;
+		align-items: start;
 	}
 </style>

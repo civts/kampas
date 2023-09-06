@@ -10,7 +10,7 @@
 		<ol>
 			{#each data.ranking.metrics || [] as m}
 				<li>
-					{m}
+					<a href="/metrics/{m}">{m}</a>
 				</li>
 			{/each}
 		</ol>

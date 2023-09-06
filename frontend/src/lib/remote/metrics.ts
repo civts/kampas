@@ -16,3 +16,15 @@ export async function getMetricsForControl(
 		return [];
 	}
 }
+
+export async function getMetric(session: Session, metric_id: string): Promise<Metric | undefined> {
+	const response = await fetch(`${BACKEND_URL}/api/v1/metrics/${metric_id}`, {
+		headers: { Authorization: `Bearer ${session.auth_token}` }
+	});
+	if (response.ok) {
+		const data: Metric = await response.json();
+		return data;
+	} else {
+		return undefined;
+	}
+}

@@ -17,10 +17,12 @@
 		{#if form?.username_error}
 			<p class="error">{form.username_error}</p>
 		{/if}
+		<label for="username">Username</label>
 		<input type="text" name="username" placeholder="Username" required />
 		{#if form?.password_error}
 			<p class="error">{form.password_error}</p>
 		{/if}
+		<label for="password">Password</label>
 		<input type="password" name="password" placeholder="Password" required />
 
 		<button type="submit">Login</button>

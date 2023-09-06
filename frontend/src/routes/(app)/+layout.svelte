@@ -17,4 +17,7 @@
 	main {
 		margin-bottom: 10vh;
 	}
+	header {
+		margin-bottom: 2rem;
+	}
 </style>

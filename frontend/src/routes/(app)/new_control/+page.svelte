@@ -13,7 +13,9 @@
 <section>
 	<h1>Add a new control</h1>
 	<form action="?/add" method="post">
+		<label for="title">Title</label>
 		<input type="text" name="title" id="newControl" placeholder="Title" />
+		<label for="description">Description</label>
 		<input type="text" name="description" placeholder="Description" />
 		<button type="submit">Add</button>
 	</form>
@@ -33,6 +35,7 @@
 		enctype="multipart/form-data"
 		use:enhance
 	>
+		<label for="file">CSV file with the controls</label>
 		<input class="drop-zone" name="file" type="file" accept="text/csv" />
 		<button type="submit">Upload</button>
 	</form>

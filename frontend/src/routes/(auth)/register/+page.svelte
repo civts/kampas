@@ -30,14 +30,17 @@
 		{#if form?.username_error}
 			<p class="error">{form.username_error}</p>
 		{/if}
+		<label for="username">Username</label>
 		<input type="text" name="username" placeholder="Username" required />
 		{#if form?.password_error}
 			<p class="error">{form.password_error}</p>
 		{/if}
+		<label for="password">Password</label>
 		<input type="password" name="password" placeholder="Password" required />
 		{#if form?.password_conf_error}
 			<p class="error">{form.password_conf_error}</p>
 		{/if}
+		<label for="password_conf">Password (confirmation)</label>
 		<input type="password" name="password_conf" placeholder="Confirm Password" required />
 		<button type="submit">Create Account</button>
 	</form>

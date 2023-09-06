@@ -24,6 +24,7 @@
 	<h1>Add a new ranking</h1>
 	<div class="createform">
 		<form action="?/add" method="post" use:enhance>
+			<label for="minimum_coverage">Minimum coverage (for each control)</label>
 			<input
 				type="number"
 				min="1"
@@ -38,5 +39,4 @@
 			<p class="error">Failed: {form?.reason}</p>
 		{/if}
 	</div>
-	Soon you will also be able to choose the algorithm for the generation
 </section>

@@ -8,7 +8,7 @@ use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 use surrealdb::engine::remote::ws::{Client, Ws};
 use surrealdb::opt::auth::Root;
-use surrealdb::sql::{Id, Object, Thing, Value};
+use surrealdb::sql::{Id, Thing};
 use surrealdb::Surreal;
 
 #[derive(Debug, Deserialize)]
@@ -87,6 +87,7 @@ pub(crate) async fn get_user(
 }
 
 pub(crate) async fn add_token(token: &AuthToken, db: &Surreal<Client>) -> surrealdb::Result<()> {
+    let _deleted = db.delete(("token", &token.username)).await?;
     let _created: Record = db
         .create(("token", &token.username))
         .content(&token)

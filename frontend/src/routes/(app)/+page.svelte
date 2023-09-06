@@ -14,7 +14,7 @@
 	}
 	let progress = data.controls.map((control) => /*control.progress*/ 50);
 
-	const controls_completed = data.controls.filter((c) => /*c.progress  == 100*/ true).length;
+	const controls_completed = data.controls.filter((c) => /*c.progress  == 100*/ false).length;
 </script>
 
 <head>
@@ -23,6 +23,9 @@
 
 {#if data?.user}
 	<p>The company has {controls_count} controls</p>
+
+	<p>See the complete list of <a href="/controls">all controls</a></p>
+
 	<div class="row">
 		<div>
 			<RoundGauge
@@ -49,7 +52,6 @@
 		{/if}
 	</div>
 
-	<p>See the complete list of <a href="/controls">all controls</a></p>
 	<!-- <p>And here is the graph of how complete they have been in time</p> -->
 {:else}
 	<center>Sry, who are you?</center>
