@@ -1,4 +1,4 @@
-use crate::{helpers::surrealdb::delete_token, models::token::AuthToken};
+use crate::{helpers::surrealdb::token::delete_token, models::token::AuthToken};
 use rocket::{http::Status, State};
 use surrealdb::{engine::remote::ws::Client, Surreal};
 

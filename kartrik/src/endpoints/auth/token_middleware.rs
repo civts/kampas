@@ -1,4 +1,4 @@
-use crate::helpers::surrealdb::get_token;
+use crate::helpers::surrealdb::token::get_token;
 use crate::models::token::AuthToken;
 use rocket::http::Status;
 use rocket::request::{FromRequest, Outcome, Request};

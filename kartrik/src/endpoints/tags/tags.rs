@@ -25,7 +25,7 @@ pub(crate) async fn add_tag(
     let control_form_data = form_data.into_inner();
     let clean_color = &control_form_data.color_hex.replace("#", "");
     let tag_to_add = Tag::new(&control_form_data.name, clean_color);
-    match surrealdb::add_tag(tag_to_add, db).await {
+    match surrealdb::tag::add_tag(tag_to_add, db).await {
         Ok(id) => {
             format!("Added {:?}!", &id)
         }
@@ -40,7 +40,7 @@ pub(crate) async fn get_tags(
     _r: GetTagsRole,
     db: &State<Surreal<Client>>,
 ) -> status::Custom<String> {
-    match surrealdb::get_tags(db).await {
+    match surrealdb::tag::get_tags(db).await {
         Ok(tags) => status::Custom(
             Status::Ok,
             serde_json::to_string(&tags).expect("can serialize the tags to JSON"),
@@ -62,7 +62,7 @@ pub(crate) async fn get_tags_for_control(
     control_id: &str,
     db: &State<Surreal<Client>>,
 ) -> status::Custom<String> {
-    match surrealdb::get_tags_for_control(control_id, db).await {
+    match surrealdb::tag::get_tags_for_control(control_id, db).await {
         Ok(tags) => status::Custom(
             Status::Ok,
             serde_json::to_string(&tags).expect("can serialize the tags to JSON"),

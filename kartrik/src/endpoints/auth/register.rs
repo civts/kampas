@@ -1,7 +1,7 @@
 use crate::helpers::cryptography::generate_random_string;
 use crate::helpers::cryptography::hash_salted_password;
-use crate::helpers::surrealdb::add_user;
-use crate::helpers::surrealdb::does_user_exist;
+use crate::helpers::surrealdb::user::add_user;
+use crate::helpers::surrealdb::user::does_user_exist;
 use crate::models::role::Role;
 use crate::models::user::User;
 use rocket::form::Form;

@@ -3,7 +3,12 @@
 	import { onMount } from 'svelte';
 	import Tag from './tag.svelte';
 
-	export let control_id: string;
+	/**
+	 * The function to run when a tag is clicked.
+	 * It shall return true to indicate that the overlay can be closed.
+	 * False to leave it open.
+	 */
+	export let callback: (t: T) => Promise<boolean>;
 
 	let showOverlay = false;
 	let tags: T[] = [];
@@ -13,31 +18,23 @@
 		tags = await response.json();
 	}
 
-	async function addTag(tagData: T) {
-		const response = await fetch('/api/tags/add_to_control', {
-			method: 'POST',
-			body: JSON.stringify({ tag_id: tagData.identifier, control_id }),
-			headers: {
-				'Content-Type': 'application/json'
-			}
-		});
-
-		if (response.ok) {
-			showOverlay = false;
-		}
-	}
-
 	onMount(fetchTags);
 </script>
 
-<button on:click={() => (showOverlay = true)}>Add tag</button>
+<button type="button" on:click={() => (showOverlay = true)}>Add tag</button>
 
 {#if showOverlay}
 	<div class="overlay" on:click={() => (showOverlay = false)}>
 		<div class="overlay-content" on:click={(e) => e.stopPropagation()}>
 			<div class="grid">
 				{#each tags as tag (tag.identifier)}
-					<div on:click={() => addTag(tag)}>
+					<div
+						on:click={async () => {
+							if (await callback(tag)) {
+								showOverlay = false;
+							}
+						}}
+					>
 						<Tag {tag} />
 					</div>
 				{/each}
@@ -49,6 +46,7 @@
 
 <style lang="scss">
 	.overlay {
+		z-index: 10;
 		position: fixed;
 		top: 0;
 		left: 0;
@@ -86,5 +84,6 @@
 		border-radius: 0.5rem;
 		padding: 0.75rem 1rem;
 		cursor: pointer;
+		margin-top: 0;
 	}
 </style>

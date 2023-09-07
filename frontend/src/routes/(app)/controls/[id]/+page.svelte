@@ -1,12 +1,46 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
-	import TagControlButton from '../../../../components/tag_control_button.svelte';
+	import type { Tag as TagI } from '$lib/models/bindings/Tag';
+	import { onMount } from 'svelte';
+	import AddTagButton from '../../../../components/add_tag_button.svelte';
+	import Tag from '../../../../components/tag.svelte';
 	import type { PageData, ActionData } from './$types';
 
 	export let data: PageData;
 	export let form: ActionData;
+	let tags: TagI[] = [];
 
 	$: control = data.control;
+
+	async function addTag(tagData: TagI, control_id: String) {
+		const response = await fetch('/api/tags/add_to_control', {
+			method: 'POST',
+			body: JSON.stringify({ tag_id: tagData.identifier, control_id }),
+			headers: {
+				'Content-Type': 'application/json'
+			}
+		});
+
+		if (response.ok) {
+			tags.push(tagData);
+			tags = tags;
+		}
+
+		return response.ok;
+	}
+
+	onMount(async () => {
+		if (control != undefined) {
+			const response = await fetch(`/api/tags?control_id=${control.identifier}`);
+			if (response.ok) {
+				try {
+					tags = await response.json();
+				} catch (error) {
+					console.log('Could not load the tags for ', control.identifier, ': ', error);
+				}
+			}
+		}
+	});
 </script>
 
 <head>
@@ -16,7 +50,20 @@
 {#if control}
 	<h1>{control.title}</h1>
 	<p>{control.description}</p>
-	<TagControlButton control_id={control.identifier} />
+	<div class="row">
+		{#each tags as tag}
+			<Tag {tag} />
+		{/each}
+		<AddTagButton
+			callback={async (tag) => {
+				if (control != undefined) {
+					return addTag(tag, control.identifier);
+				} else {
+					return false;
+				}
+			}}
+		/>
+	</div>
 	<section>
 		<h1>Associated Metrics</h1>
 		<ul>
@@ -87,5 +134,9 @@
 		width: 300px;
 		margin: 0rem auto;
 		align-items: start;
+	}
+	.row {
+		justify-content: start;
+		gap: 1rem;
 	}
 </style>

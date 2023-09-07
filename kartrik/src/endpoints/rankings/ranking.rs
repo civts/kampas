@@ -1,6 +1,6 @@
 use crate::{
     generate_endpoint_roles,
-    helpers::surrealdb::add_ranking,
+    helpers::surrealdb::{ranking::add_ranking, tag::get_tag_control_association},
     models::{
         metric::Metric,
         ranking::{RankOrdering, Ranking},
@@ -22,23 +22,30 @@ use std::collections::HashSet;
 use std::collections::{BTreeMap, HashMap};
 
 #[derive(Debug, FromForm)]
-pub(crate) struct CreateRankingFormData {
+pub(crate) struct CreateRankingParams {
     #[field(validate = range(1..101), default = 100)]
     /// Minimum coverage (in percentage) that a control
     /// must have in order to be considered complete
     minimum_coverage: u8,
+    /// List of tags that the controls must have to be included in the ranking.
+    /// if this list is not specified, all controls are included.
+    filter_tags: Option<Vec<String>>,
+    /// Used only if filter_tags is not none.
+    /// If true, a control must have all the tags to be included.
+    /// If false, a control is included if it has at least one of the tags
+    #[field(default = false)]
+    all_tags: bool,
 }
 
 generate_endpoint_roles!(CreateRankingRole, { Role::CreateRanking });
 #[post("/", data = "<form_data>")]
 pub(crate) async fn new_ranking(
-    form_data: Form<CreateRankingFormData>,
-    //_r: CreateRankingRole,
+    form_data: Form<CreateRankingParams>,
+    _r: CreateRankingRole,
     user: User,
     db: &State<Surreal<Client>>,
 ) -> status::Custom<String> {
-    let min_coverage = form_data.minimum_coverage;
-    match generate_ranking(min_coverage, db).await {
+    match generate_ranking(&form_data.into_inner(), db).await {
         Ok(metrics) => {
             // Save ranking to db
             let ranking = Ranking::new(
@@ -77,7 +84,7 @@ pub(crate) async fn get_rankings(
     _required_roles: GetRakingsRole,
     db: &State<Surreal<Client>>,
 ) -> status::Custom<String> {
-    let rankings_res = surrealdb::get_rankings(db).await;
+    let rankings_res = surrealdb::ranking::get_rankings(db).await;
     println!("{} is requesting the rankings", user.username);
     match rankings_res {
         Ok(rankings) => status::Custom(
@@ -102,7 +109,7 @@ pub(crate) async fn get_ranking(
     db: &State<Surreal<Client>>,
 ) -> status::Custom<String> {
     println!("{} is requesting the ranking {ranking_id}", user.username);
-    let rankings_res = surrealdb::get_ranking(&ranking_id, db).await;
+    let rankings_res = surrealdb::ranking::get_ranking(&ranking_id, db).await;
     match rankings_res {
         Ok(ranking) => status::Custom(
             Status::Ok,
@@ -119,21 +126,73 @@ pub(crate) async fn get_ranking(
 }
 
 async fn generate_ranking(
-    min_coverage: u8,
+    params: &CreateRankingParams,
     db: &State<Surreal<Client>>,
 ) -> Result<Vec<String>, Error> {
     // Get all the controls from the database
-    let controls = surrealdb::get_controls(db).await?;
+    let controls = get_filtered_controls(db, params).await?;
     // Get all the metrics from the database
-    let metrics = surrealdb::get_metrics(db).await?;
+    let metrics = surrealdb::metric::get_metrics(db).await?;
 
     // Get the relation between controls and metrics
-    let metrics_for_control = surrealdb::get_metric_control_association(db).await?;
+    let metrics_for_control = surrealdb::metric::get_metric_control_association(db).await?;
 
     // Start greedy: take the metric with the most associated controls (divided by its effort), strike out the controls
-    let best_metrics = minimize_cost(&controls, &metrics, &metrics_for_control, min_coverage);
+    let best_metrics = minimize_cost(
+        &controls,
+        &metrics,
+        &metrics_for_control,
+        params.minimum_coverage,
+    );
 
     Ok(Vec::from_iter(best_metrics.into_iter()))
+}
+
+async fn get_filtered_controls(
+    db: &State<Surreal<Client>>,
+    params: &CreateRankingParams,
+) -> Result<Vec<Control>, Error> {
+    let controls = surrealdb::control::get_controls(db).await?;
+    Ok(match &params.filter_tags {
+        None => controls,
+        Some(tags_to_filter) => {
+            if tags_to_filter.is_empty() {
+                if params.all_tags {
+                    controls
+                } else {
+                    Vec::new()
+                }
+            } else {
+                let requested_tags: HashSet<&str> =
+                    HashSet::from_iter(tags_to_filter.iter().map(|s| s.as_str()));
+                let tag_control_associations = get_tag_control_association(db).await?;
+                let mut relevant_associations = tag_control_associations
+                    .iter()
+                    .filter(|(tag_id, _controls)| requested_tags.contains(tag_id.as_str()))
+                    .map(|(_tag_id, controls)| {
+                        HashSet::from_iter(controls.iter().map(|c| c.as_str()))
+                    });
+                let relevant_control_ids: HashSet<&str> = if params.all_tags {
+                    let firstset = relevant_associations
+                        .next()
+                        .expect("There is at least one tag association");
+                    //Fold the tags intersetcting the controls sets, then filter the controls
+                    relevant_associations.fold(firstset, |prev, value| {
+                        prev.intersection(&value).map(|c| *c).collect()
+                    })
+                } else {
+                    relevant_associations.fold(HashSet::new(), |prev, value| {
+                        prev.union(&value).map(|c| *c).collect()
+                    })
+                };
+                controls
+                    .iter()
+                    .filter(|control| relevant_control_ids.contains(control.identifier.as_str()))
+                    .map(|c| c.to_owned())
+                    .collect()
+            }
+        }
+    })
 }
 
 /// Finds the best metrics to minimize the cost. This is a variant of the Weighted Set
@@ -177,13 +236,19 @@ pub(crate) fn minimize_cost(
             // Controls that would be covered by this metric
             let covered_controls = coverage_map.get(*metric_id).unwrap_or(&empty_vec);
 
-            let effort = *metric_efforts.get(metric_id).unwrap() as f64;
+            let effort = *metric_efforts
+                .get(metric_id)
+                .expect("can get effort for metric") as f64;
             let coverage_increase = covered_controls.iter().fold(0, |prev, c| {
                 let control_id = c.0.as_str();
                 let coverage = c.1;
                 if
                 // remaining_controls.contains(control_id) &&
-                controls_coverage.get(control_id).unwrap() < &min_coverage {
+                controls_coverage
+                    .get(control_id)
+                    .map(|coverage| coverage < &min_coverage)
+                    .unwrap_or(false)
+                {
                     // Add the contribution of this metric for this control
                     prev + coverage
                 } else {

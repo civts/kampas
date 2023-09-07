@@ -3,10 +3,22 @@
 	import type { Tag as T } from '$lib/models/bindings/Tag';
 	import { onMount } from 'svelte';
 	import Tag from './tag.svelte';
-	import TagControlButton from './tag_control_button.svelte';
+	import AddTagButton from './add_tag_button.svelte';
 
 	export let control: Control;
 	let tags: T[] = [];
+
+	async function addTag(tagData: T, control_id: String) {
+		const response = await fetch('/api/tags/add_to_control', {
+			method: 'POST',
+			body: JSON.stringify({ tag_id: tagData.identifier, control_id }),
+			headers: {
+				'Content-Type': 'application/json'
+			}
+		});
+
+		return response.ok;
+	}
 
 	onMount(async () => {
 		const response = await fetch(`/api/tags?control_id=${control.identifier}`);
@@ -27,7 +39,7 @@
 	{#each tags as tag}
 		<li><Tag {tag} /></li>
 	{/each}
-	<TagControlButton control_id={control.identifier} />
+	<AddTagButton callback={(tag) => addTag(tag, control.identifier)} />
 </ul>
 
 <style lang="scss">

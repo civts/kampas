@@ -1,5 +1,5 @@
 use super::token_middleware::AuthTokenError;
-use crate::helpers::surrealdb::get_user;
+use crate::helpers::surrealdb::user::get_user;
 use crate::models::token::AuthToken;
 use crate::models::user::User;
 use rocket::request::{FromRequest, Outcome, Request};

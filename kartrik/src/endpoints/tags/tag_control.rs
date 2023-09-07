@@ -20,7 +20,7 @@ pub(crate) async fn add_tag_to_control(
     _r: AddTagsRole,
     db: &State<Surreal<Client>>,
 ) -> status::Custom<String> {
-    match surrealdb::tag_control(&form_data.control_id, &form_data.tag_id, db).await {
+    match surrealdb::tag::tag_control(&form_data.control_id, &form_data.tag_id, db).await {
         Ok(_) => {
             println!(
                 "Control {} tagged with {}",

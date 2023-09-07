@@ -1,5 +1,5 @@
 use crate::generate_endpoint_roles;
-use crate::helpers::surrealdb::add_control;
+use crate::helpers::surrealdb::control::add_control;
 use crate::models::control::Control;
 use crate::models::{role::Role, user::User};
 use csv::{ReaderBuilder, StringRecord, StringRecordsIter};

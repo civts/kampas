@@ -18,7 +18,7 @@ use endpoints::{
         tags::{add_tag, get_tags, get_tags_for_control},
     },
 };
-use helpers::{cors::CORS, surrealdb::get_client};
+use helpers::{cors::CORS, surrealdb::connection::get_client};
 
 #[get("/")]
 pub(crate) fn working() -> &'static str {

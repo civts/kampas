@@ -1,7 +1,7 @@
 use crate::helpers::cryptography::hash_salted_password;
-use crate::helpers::surrealdb::add_token;
-use crate::helpers::surrealdb::get_token_for_user;
-use crate::helpers::surrealdb::get_user;
+use crate::helpers::surrealdb::token::add_token;
+use crate::helpers::surrealdb::token::get_token_for_user;
+use crate::helpers::surrealdb::user::get_user;
 use crate::models::token::AuthToken;
 use blake3::Hash;
 use rocket::form::Form;

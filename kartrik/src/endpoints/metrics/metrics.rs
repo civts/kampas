@@ -1,6 +1,6 @@
 use crate::{
     generate_endpoint_roles,
-    helpers::surrealdb::{
+    helpers::surrealdb::metric::{
         add_metric as add_metricl, associate_metric as associate_metricl,
         get_metric as get_metricl, get_metrics as get_metricss,
         get_metrics_for_control as get_metrics_for_controll,

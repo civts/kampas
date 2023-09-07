@@ -1,6 +1,6 @@
 use crate::{
     generate_endpoint_roles,
-    helpers::surrealdb::{
+    helpers::surrealdb::control::{
         add_control as add_controll, get_control as get_controll, get_controls as get_controlss,
     },
     models::{control::Control, role::Role, user::User},
