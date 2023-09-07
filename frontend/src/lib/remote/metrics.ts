@@ -10,7 +10,6 @@ export async function getMetricsForControl(
 	});
 	if (response.ok) {
 		const data: Metric[] = await response.json();
-		console.log('METRICS METRICS METRICS METRICS METRICS ', data);
 		return data;
 	} else {
 		return [];

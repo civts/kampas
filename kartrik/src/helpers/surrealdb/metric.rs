@@ -1,7 +1,8 @@
 use super::Record;
 use crate::models::metric::Metric;
+use crate::models::tag::Tag;
 use serde::{Deserialize, Serialize};
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, HashMap};
 use surrealdb::engine::remote::ws::Client;
 use surrealdb::sql::{Id, Thing};
 use surrealdb::Surreal;
@@ -119,4 +120,67 @@ pub(crate) async fn get_metric_control_association(
     });
 
     Ok(result)
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(crate = "rocket::serde")]
+struct HelperR {
+    control: Thing,
+    coverage: u8,
+}
+
+/// Given a metric id, it returns a map that associates the control_ids
+/// measured by this metric to their coverage
+pub(crate) async fn get_coverage_for_metric(
+    metric_id: &str,
+    db: &Surreal<Client>,
+) -> surrealdb::Result<HashMap<String, u8>> {
+    let res: Vec<HelperR> = db
+        .query("SELECT coverage, out as control FROM $metric_id->measures")
+        .bind((
+            "metric_id",
+            Thing {
+                id: Id::String(metric_id.to_string()),
+                tb: "metric".to_string(),
+            },
+        ))
+        .await?
+        .take(0)?;
+    Ok(HashMap::from_iter(res.iter().map(|r| {
+        let id = match &r.control.id {
+            Id::String(s) => s,
+            _ => panic!("We only use string ids for controls"),
+        };
+        (id.to_owned(), r.coverage)
+    })))
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(crate = "rocket::serde")]
+struct HelperR2 {
+    ids: Vec<Thing>,
+}
+
+/// Given a metric id, it returns a vector with the ids of the tags of
+/// all the controls this metric measures
+pub(crate) async fn get_tags_for_metric(
+    metric_id: &str,
+    db: &Surreal<Client>,
+) -> surrealdb::Result<Vec<Tag>> {
+    let res: Vec<Tag> = db
+        // .query("SELECT id FROM $metrics->measures.out<-tags.in")
+        // .query("SELECT array::group(id) as ids FROM $metrics->measures.out<-tags.in.id GROUP ALL")
+        .query("SELECT * FROM $metrics->measures.out<-tags.in.*")
+        //You can also use a vec<Thing> and get the aggregate tags of more metrics at once
+        .bind((
+            "metrics",
+            Thing {
+                id: Id::String(metric_id.to_string()),
+                tb: "metric".to_string(),
+            },
+        ))
+        .await?
+        .take(0)?;
+
+    Ok(res)
 }

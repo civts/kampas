@@ -69,8 +69,9 @@
 		<ul>
 			{#each data.metrics as metric}
 				<li>
-					<span>{metric.title}</span>
-					<span>{metric.description}</span>
+					<a href="/metrics/{metric.identifier}">
+						<span>{metric.title} (progress: {metric.progress}%)</span>
+					</a>
 				</li>
 			{/each}
 		</ul>
@@ -119,13 +120,9 @@
 
 <style lang="scss">
 	ul {
-		list-style: none;
-		display: flex;
 		gap: 1rem;
-		padding-left: 0;
 		li {
 			border-radius: 0.5rem;
-			background: var(--bg2);
 			padding: 1rem 2rem;
 		}
 	}

@@ -4,21 +4,23 @@
 	export let data: PageData;
 </script>
 
+<head>
+	<title>Ranking</title>
+</head>
+
 <section>
 	{#if data.ranking}
 		<h2>Metrics</h2>
 		<ol>
-			{#each data.ranking.metrics || [] as m}
+			{#each data.metrics || [] as m}
 				<li>
-					<a href="/metrics/{m}">{m}</a>
+					<a href="/metrics/{m?.identifier}">{m?.title}</a>
 				</li>
 			{/each}
 		</ol>
-		<span>Ordering: {data.ranking.ordering}</span>
-		<br />
 		<span>Created by: {data.ranking.created_by}</span>
 		<br />
-		<span>Id: {data.ranking.identifier}</span>
+		<span>Ordering: {data.ranking.ordering}</span>
 	{:else}
 		No ranking for that name. Maybe it does not exist, maybe you don't have access.
 	{/if}

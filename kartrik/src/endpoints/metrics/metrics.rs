@@ -1,9 +1,11 @@
 use crate::{
+    endpoints::tags::tags::GetTagsRole,
     generate_endpoint_roles,
     helpers::surrealdb::metric::{
         add_metric as add_metricl, associate_metric as associate_metricl,
-        get_metric as get_metricl, get_metrics as get_metricss,
-        get_metrics_for_control as get_metrics_for_controll,
+        get_coverage_for_metric as get_coverage_for_metricc, get_metric as get_metricl,
+        get_metrics as get_metricss, get_metrics_for_control as get_metrics_for_controll,
+        get_tags_for_metric as get_tags_for_metricc,
     },
     models::{metric::Metric, role::Role, user::User},
 };
@@ -144,6 +146,64 @@ pub(crate) async fn get_metric(
         ),
         Err(err) => {
             println!("Something went wrong getting the metrics: {}", err);
+            status::Custom(
+                Status::InternalServerError,
+                "Internal Server Error".to_string(),
+            )
+        }
+    }
+}
+
+#[get("/coverage_for_metric?<metric_id>")]
+pub(crate) async fn get_coverage_for_metric(
+    user: User,
+    metric_id: String,
+    _required_roles: GetMetricsRole,
+    db: &State<Surreal<Client>>,
+) -> status::Custom<String> {
+    println!(
+        "{} is requesting the coverage info for metric {metric_id}",
+        user.username
+    );
+    let metrics_res = get_coverage_for_metricc(&metric_id, db).await;
+    match metrics_res {
+        Ok(metric) => {
+            let a = serde_json::to_string(&metric)
+                .expect("can serialize the metric coverage info to JSON");
+            status::Custom(Status::Ok, a)
+        }
+        Err(err) => {
+            println!(
+                "Something went wrong getting the metric coverage info: {}",
+                err
+            );
+            status::Custom(
+                Status::InternalServerError,
+                "Internal Server Error".to_string(),
+            )
+        }
+    }
+}
+
+#[get("/tags_for_metric?<metric_id>")]
+pub(crate) async fn get_tags_for_metric(
+    user: User,
+    metric_id: String,
+    _required_roles: GetTagsRole,
+    db: &State<Surreal<Client>>,
+) -> status::Custom<String> {
+    println!(
+        "{} is requesting the tags for metric {metric_id}",
+        user.username
+    );
+    let metrics_res = get_tags_for_metricc(&metric_id, db).await;
+    match metrics_res {
+        Ok(tags) => {
+            let a = serde_json::to_string(&tags).expect("can serialize the metric tags to JSON");
+            status::Custom(Status::Ok, a)
+        }
+        Err(err) => {
+            println!("Something went wrong getting the metric tags: {}", err);
             status::Custom(
                 Status::InternalServerError,
                 "Internal Server Error".to_string(),

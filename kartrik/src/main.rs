@@ -6,11 +6,12 @@ mod models;
 use endpoints::{
     auth,
     controls::{
-        controls::{add_control, get_control, get_controls},
+        controls::{add_control, get_control, get_controls, get_controls_for_metric},
         upload::upload,
     },
     metrics::metrics::{
-        add_metric, associate_metric, get_metric, get_metrics, get_metrics_for_control,
+        add_metric, associate_metric, get_coverage_for_metric, get_metric, get_metrics,
+        get_metrics_for_control, get_tags_for_metric,
     },
     rankings::ranking::{get_ranking, get_rankings, new_ranking},
     tags::{
@@ -31,7 +32,13 @@ async fn rocket() -> _ {
     rocket::build()
         .mount(
             "/api/v1/controls",
-            routes![add_control, get_controls, upload, get_control],
+            routes![
+                add_control,
+                get_controls,
+                upload,
+                get_control,
+                get_controls_for_metric
+            ],
         )
         .mount(
             "/api/v1/tags",
@@ -44,7 +51,9 @@ async fn rocket() -> _ {
                 get_metrics,
                 get_metric,
                 get_metrics_for_control,
-                associate_metric
+                get_coverage_for_metric,
+                associate_metric,
+                get_tags_for_metric
             ],
         )
         .mount(
