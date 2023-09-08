@@ -1,8 +1,9 @@
 use crate::{
     generate_endpoint_roles,
     helpers::surrealdb::control::{
-        add_control as add_controll, get_control as get_controll, get_controls as get_controlss,
-        get_controls_for_metric as get_controls_for_metricc,
+        add_control as add_controll, get_control as get_controll,
+        get_control_completion as get_control_completionn, get_control_completion_batch,
+        get_controls as get_controlss, get_controls_for_metric as get_controls_for_metricc,
     },
     models::{control::Control, role::Role, user::User},
 };
@@ -109,6 +110,64 @@ pub(crate) async fn get_controls_for_metric(
             status::Custom(
                 Status::InternalServerError,
                 "Internal Server Error".to_string(),
+            )
+        }
+    }
+}
+
+#[get("/get_completion?<control_id>")]
+pub(crate) async fn get_control_completion(
+    user: User,
+    control_id: String,
+    _required_roles: GetControlsRole,
+    db: &State<Surreal<Client>>,
+) -> status::Custom<String> {
+    let controls_res = get_control_completionn(db, control_id).await;
+    println!("{} is requesting the controls", user.username);
+    match controls_res {
+        Ok(completion) => status::Custom(Status::Ok, completion.to_string()),
+        Err(err) => {
+            println!("Something went wrong getting the controls: {}", err);
+            status::Custom(
+                Status::InternalServerError,
+                "Internal Server Error".to_string(),
+            )
+        }
+    }
+}
+
+#[post("/get_completion_batch", data = "<form_data>")]
+pub(crate) async fn get_control_completion_b(
+    user: User,
+    form_data: String,
+    _required_roles: GetControlsRole,
+    db: &State<Surreal<Client>>,
+) -> status::Custom<String> {
+    let ids_res = serde_json::from_str::<Vec<String>>(&form_data);
+    match ids_res {
+        Ok(control_ids) => {
+            let controls_res = get_control_completion_batch(db, control_ids).await;
+            println!("{} is requesting the controls", user.username);
+            match controls_res {
+                Ok(completion_vec) => status::Custom(
+                    Status::Ok,
+                    serde_json::to_string(&completion_vec)
+                        .expect("can serialize the controls completion to JSON"),
+                ),
+                Err(err) => {
+                    println!("Something went wrong getting the controls: {}", err);
+                    status::Custom(
+                        Status::InternalServerError,
+                        "Internal Server Error".to_string(),
+                    )
+                }
+            }
+        }
+        Err(err) => {
+            println!("Something went wrong reading the ids: {}", err);
+            status::Custom(
+                Status::BadRequest,
+                Status::BadRequest.reason_lossy().to_string(),
             )
         }
     }

@@ -6,15 +6,20 @@
 	export let data: PageData;
 
 	const controls_count = data.controls.length;
-	const sum = data.controls.reduce((total, control) => total + /*control.progress*/ 0, 0);
+	const sum = data.controls.reduce(
+		(total, control) => total + (data.completion.get(control.identifier) || 0),
+		0
+	);
 
 	let average_completion = 0;
 	if (controls_count != 0) {
 		average_completion = sum / data.controls.length;
 	}
-	let progress = data.controls.map((control) => /*control.progress*/ 50);
+	let progress = data.controls.map((control) => data.completion.get(control.identifier) || 0);
 
-	const controls_completed = data.controls.filter((c) => /*c.progress  == 100*/ false).length;
+	const controls_completed = data.controls.filter(
+		(c) => data.completion.get(c.identifier) == 100 || false
+	).length;
 </script>
 
 <head>

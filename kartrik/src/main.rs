@@ -6,7 +6,10 @@ mod models;
 use endpoints::{
     auth,
     controls::{
-        controls::{add_control, get_control, get_controls, get_controls_for_metric},
+        controls::{
+            add_control, get_control, get_control_completion, get_control_completion_b,
+            get_controls, get_controls_for_metric,
+        },
         upload::upload,
     },
     metrics::metrics::{
@@ -37,7 +40,9 @@ async fn rocket() -> _ {
                 get_controls,
                 upload,
                 get_control,
-                get_controls_for_metric
+                get_controls_for_metric,
+                get_control_completion,
+                get_control_completion_b
             ],
         )
         .mount(

@@ -48,3 +48,47 @@ export async function get_controls_for_metric(metric_id: String, session: Sessio
 		return [];
 	}
 }
+
+export async function get_control_completion(
+	session: Session,
+	control_id: String
+): Promise<number> {
+	try {
+		const controls_resp = await fetch(
+			BACKEND_URL + '/api/v1/controls/get_completion?control_id=' + control_id,
+			{
+				headers: {
+					Authorization: `Bearer ${session.auth_token}`
+				}
+			}
+		);
+
+		let completion: number = await controls_resp.json();
+		return completion;
+	} catch (error) {
+		console.error('Error loading completion for control: ', error);
+		return 0;
+	}
+}
+
+export async function get_control_completion_batch(
+	session: Session,
+	control_ids: String[]
+): Promise<number[]> {
+	try {
+		const controls_resp = await fetch(BACKEND_URL + '/api/v1/controls/get_completion_batch', {
+			method: 'POST',
+			headers: {
+				Authorization: `Bearer ${session.auth_token}`,
+				'Content-Type': 'application/json'
+			},
+			body: JSON.stringify(control_ids)
+		});
+
+		let completion: number[] = await controls_resp.json();
+		return completion;
+	} catch (error) {
+		console.error('Error loading completion for control: ', error);
+		return [];
+	}
+}

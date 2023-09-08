@@ -1,4 +1,5 @@
 use crate::models::control::Control;
+use serde::{Deserialize, Serialize};
 use surrealdb::engine::remote::ws::Client;
 use surrealdb::sql::{Id, Thing};
 use surrealdb::Surreal;
@@ -47,4 +48,73 @@ pub(crate) async fn get_control(
     let control: Option<Control> = db.select(("control", id)).await?;
 
     Ok(control)
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(crate = "rocket::serde")]
+struct _Helper {
+    coverage: u8,
+    progress: u8,
+}
+
+/// Returns the completion of the given control, which is computed by
+/// adding the contributions of all the associated metrics.
+pub(crate) async fn get_control_completion(
+    db: &Surreal<Client>,
+    id: String,
+) -> surrealdb::Result<f64> {
+    let query_res: Vec<_Helper> = db
+        .query("SELECT coverage, in.progress as progress FROM $cid<-measures")
+        .bind((
+            "cid",
+            Thing {
+                id: Id::String(id.to_string()),
+                tb: "control".to_string(),
+            },
+        ))
+        .await?
+        .take(0)?;
+    let res = query_res.iter().fold(0f64, |prev, i| {
+        prev + (i.progress as f64 * i.coverage as f64 / 100f64)
+    });
+
+    Ok(res)
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(crate = "rocket::serde")]
+struct _Helper2 {
+    coverage: Vec<u8>,
+    progress: Vec<u8>,
+}
+pub(crate) async fn get_control_completion_batch(
+    db: &Surreal<Client>,
+    ids: Vec<String>,
+) -> surrealdb::Result<Vec<f64>> {
+    let query_res: Vec<_Helper2> = db
+        .query("SELECT coverage, in.progress as progress FROM $cids<-measures")
+        .bind((
+            "cids",
+            Vec::from_iter(ids.iter().map(|id| Thing {
+                id: Id::String(id.to_string()),
+                tb: "control".to_string(),
+            })),
+        ))
+        .await?
+        .take(0)?;
+    let res = query_res
+        .iter()
+        .map(|h| {
+            let mut result = 0f64;
+            for i in 0..h.coverage.len() {
+                let progress = *h.progress.get(i).expect("There should be a progress here");
+                let coverage = *h.coverage.get(i).expect("There should be a coverage here");
+
+                result = result + (progress as f64 * coverage as f64 / 100f64);
+            }
+            result
+        })
+        .collect();
+
+    Ok(res)
 }
