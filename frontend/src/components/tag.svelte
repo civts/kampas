@@ -1,10 +1,12 @@
 <script lang="ts">
 	import type { Tag } from '$lib/models/bindings/Tag';
-	import { afterUpdate, onMount } from 'svelte';
+	import { afterUpdate } from 'svelte';
 
 	export let tag: Tag;
+	export let close_callback: ((t: Tag) => Promise<any>) | undefined = undefined;
+
 	let elem: HTMLElement;
-	onMount(() => {
+	afterUpdate(() => {
 		elem.style.backgroundColor = `#${tag.color_hex}`;
 		const textColor = isColorLight(tag.color_hex) ? 'var(--input-bg)' : 'var(--text-color)';
 		elem.style.color = textColor;
@@ -19,15 +21,53 @@
 	}
 </script>
 
-<div bind:this={elem}>
-	{tag.name}
+<div class="tagdiv">
+	<div bind:this={elem}>
+		{tag.name}
+	</div>
+	{#if close_callback}
+		<button
+			type="button"
+			class="closebutton"
+			on:click={(_) => {
+				if (close_callback) {
+					close_callback(tag);
+				}
+			}}
+		>
+			X
+		</button>
+	{/if}
 </div>
 
 <style lang="scss">
-	div {
-		width: fit-content;
-		height: fit-content;
-		padding: 0.5rem 0.75rem;
-		border-radius: 0.5rem;
+	.tagdiv {
+		display: grid;
+		grid-template-columns: 1fr;
+		align-items: center;
+
+		div {
+			width: fit-content;
+			height: fit-content;
+			padding: 0.5rem 0.75rem;
+			border-radius: 0.5rem;
+		}
+
+		.closebutton {
+			justify-self: end;
+			color: var(--text-color);
+			border: none;
+			position: absolute;
+			cursor: pointer;
+			display: none;
+			background-color: var(--input-bg);
+			border-radius: 0.3rem;
+			padding: 0.25rem;
+			margin: 0;
+			margin-right: 0.2rem;
+		}
+		&:hover .closebutton {
+			display: block;
+		}
 	}
 </style>

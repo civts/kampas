@@ -23,6 +23,14 @@
 		return true;
 	}
 
+	async function removetag(tag: TagI) {
+		const index = selected_tags.indexOf(tag);
+		if (index != -1) {
+			selected_tags.splice(index, 1);
+			selected_tags = selected_tags;
+		}
+	}
+
 	afterUpdate(() => {
 		console.log('Running againn');
 		if (form?.ranking_id) {
@@ -65,7 +73,7 @@
 			{#if filter_by_tag}
 				<div class="tagrow">
 					{#each selected_tags as tag}
-						<Tag {tag} />
+						<Tag {tag} close_callback={removetag} />
 						<input type="text" name="tag" hidden value={tag.identifier} />
 					{/each}
 					<AddTagButton callback={addTag} />
@@ -90,39 +98,6 @@
 </section>
 
 <style lang="scss">
-	input.toggle {
-		$h: 2em;
-		width: 2 * $h;
-		height: $h;
-		margin: 0;
-		border: unset;
-		position: relative;
-		&::before {
-			content: '';
-			background-color: var(--input-bg);
-			border-radius: 2 * $h;
-			position: absolute;
-			width: 100%;
-			height: 100%;
-		}
-		&::after {
-			position: absolute;
-			content: '';
-			box-sizing: border-box;
-			background-color: var(--input-bg);
-			border: 3px solid var(--accent);
-			width: $h;
-			height: $h;
-			border-radius: $h;
-			transition: all 0.2s ease;
-			transform: translateX(0);
-			left: 0;
-		}
-		&:checked::after {
-			background-color: var(--accent);
-			transform: translateX($h);
-		}
-	}
 	.row {
 		gap: 1rem;
 		span {
