@@ -1,10 +1,6 @@
-import type { Tag } from '$lib/models/bindings/Tag';
-import {
-	get_controls_for_metric,
-	get_coverage_for_metric,
-	get_tags_for_metric
-} from '$lib/remote/controls';
-import { getMetric } from '$lib/remote/metrics';
+import { get_controls_for_metric } from '$lib/remote/controls';
+import { getMetric, get_coverage_for_metric } from '$lib/remote/metrics';
+import { get_tags_for_metric } from '$lib/remote/tags';
 import { getSessionFromCookiesOrCreate } from '$lib/session_cookies';
 
 export async function load({ cookies, params }) {

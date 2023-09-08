@@ -1,5 +1,4 @@
 use crate::helpers::cryptography::generate_random_string;
-use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use ts_rs::TS;
 
@@ -16,16 +15,23 @@ pub(crate) struct Ranking {
     /// How it was created
     pub(crate) ordering: RankOrdering,
     pub(crate) identifier: String,
+    pub(crate) name: String,
 }
 
 impl Ranking {
-    pub(crate) fn new(metrics: Vec<String>, created_by: &str, ordering: RankOrdering) -> Self {
-        let created_at = DateTime::<Utc>::default().timestamp_nanos().to_string();
+    pub(crate) fn new(
+        metrics: Vec<String>,
+        created_by: &str,
+        ordering: RankOrdering,
+        name: &str,
+    ) -> Self {
+        let created_at = chrono::offset::Utc::now().timestamp_millis().to_string();
         let id = generate_random_string(16);
         Self {
             created_at,
             identifier: id,
             created_by: created_by.to_string(),
+            name: name.to_string(),
             metrics,
             ordering,
         }

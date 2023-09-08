@@ -1,8 +1,8 @@
 import { getSessionFromCookiesOrCreate } from '$lib/session_cookies';
 import type { PageServerLoad } from './$types';
-import { get_tags } from '$lib/remote/controls';
 import { BACKEND_URL } from '$lib/costants';
 import { fail, type Actions } from '@sveltejs/kit';
+import { get_tags } from '$lib/remote/tags';
 
 export const load: PageServerLoad = async ({ cookies }) => {
 	let session = await getSessionFromCookiesOrCreate(cookies);

@@ -1,5 +1,4 @@
 use crate::helpers::cryptography::generate_random_string;
-use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use ts_rs::TS;
 
@@ -15,7 +14,7 @@ pub(crate) struct Control {
 
 impl Control {
     pub(crate) fn new(title: &str, description: &str) -> Self {
-        let created_at = DateTime::<Utc>::default().timestamp_nanos().to_string();
+        let created_at = chrono::offset::Utc::now().timestamp_millis().to_string();
         let id = generate_random_string(16);
         Control {
             created_at,

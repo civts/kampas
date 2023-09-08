@@ -41,6 +41,8 @@
 	<h1>Add a new ranking</h1>
 	<div class="createform">
 		<form action="?/add" method="post" use:enhance>
+			<label for="name">Ranking name</label>
+			<input type="text" name="name" placeholder="name" />
 			<label for="minimum_coverage">Minimum coverage (for each control)</label>
 			<input
 				type="number"

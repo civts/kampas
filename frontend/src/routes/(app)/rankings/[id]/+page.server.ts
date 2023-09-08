@@ -1,5 +1,5 @@
-import { get_ranking } from '$lib/remote/controls';
 import { getMetric } from '$lib/remote/metrics';
+import { get_ranking } from '$lib/remote/ranking';
 import { getSessionFromCookiesOrCreate } from '$lib/session_cookies';
 
 export async function load({ cookies, params }) {

@@ -35,6 +35,8 @@ pub(crate) struct CreateRankingParams {
     /// If false, a control is included if it has at least one of the tags
     #[field(default = false)]
     all_tags: bool,
+    #[field(validate = len(1..101))]
+    name: String,
 }
 
 generate_endpoint_roles!(CreateRankingRole, { Role::CreateRanking });
@@ -45,6 +47,7 @@ pub(crate) async fn new_ranking(
     user: User,
     db: &State<Surreal<Client>>,
 ) -> status::Custom<String> {
+    let name = form_data.name.clone();
     match generate_ranking(&form_data.into_inner(), db).await {
         Ok(metrics) => {
             // Save ranking to db
@@ -52,6 +55,7 @@ pub(crate) async fn new_ranking(
                 metrics,
                 &user.username,
                 RankOrdering::GreedyWeightedSetCover,
+                &name,
             );
             match add_ranking(ranking, db).await {
                 Ok(ranking_id) => {

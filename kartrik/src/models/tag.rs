@@ -1,5 +1,4 @@
 use crate::helpers::cryptography::generate_random_string;
-use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use ts_rs::TS;
 
@@ -17,7 +16,7 @@ impl Tag {
         Self {
             name: name.into(),
             color_hex: color_hex.into(),
-            created_at: DateTime::<Utc>::default().timestamp_nanos().to_string(),
+            created_at: chrono::offset::Utc::now().timestamp_millis().to_string(),
             identifier: generate_random_string(16),
         }
     }

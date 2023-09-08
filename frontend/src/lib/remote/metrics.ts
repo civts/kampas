@@ -27,3 +27,21 @@ export async function getMetric(session: Session, metric_id: string): Promise<Me
 		return undefined;
 	}
 }
+
+export async function get_coverage_for_metric(metric_id: String, session: Session) {
+	try {
+		const coverage_resp = await fetch(
+			BACKEND_URL + `/api/v1/metrics/coverage_for_metric?metric_id=${metric_id}`,
+			{
+				headers: {
+					Authorization: `Bearer ${session.auth_token}`
+				}
+			}
+		);
+		const coverage = new Map(Object.entries(await coverage_resp.json()));
+		return coverage;
+	} catch (error) {
+		console.error('Error loading coverage: ', error);
+		return new Map<String, number>();
+	}
+}

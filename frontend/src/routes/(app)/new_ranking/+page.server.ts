@@ -21,6 +21,7 @@ export const actions: Actions = {
 					// Gather all or any
 					data.set('all_tags', formData.get('all_tags') == 'on' ? 'true' : 'false');
 				}
+				data.set('name', formData.get('name')?.toString() || 'No name');
 				const response = await fetch(BACKEND_URL + '/api/v1/rankings', {
 					method: 'POST',
 					headers: {
