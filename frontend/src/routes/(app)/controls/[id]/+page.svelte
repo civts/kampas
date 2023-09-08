@@ -1,13 +1,12 @@
 <script lang="ts">
-	import { enhance } from '$app/forms';
 	import type { Tag as TagI } from '$lib/models/bindings/Tag';
 	import { onMount } from 'svelte';
+	import AddMetricButton from '../../../../components/add_metric_button.svelte';
 	import AddTagButton from '../../../../components/add_tag_button.svelte';
 	import Tag from '../../../../components/tag.svelte';
-	import type { PageData, ActionData } from './$types';
+	import type { PageData } from './$types';
 
 	export let data: PageData;
-	export let form: ActionData;
 	let tags: TagI[] = [];
 
 	$: control = data.control;
@@ -97,47 +96,34 @@
 					</a>
 				</li>
 			{/each}
-		</ul>
-	</section>
-	<section>
-		<h1>Add metric</h1>
-		<form action="?/add" method="post" use:enhance>
-			{#if form?.title_error}
-				<p class="error">{form.title_error}</p>
-			{/if}
-			<label for="title">Title</label>
-			<input type="text" name="title" placeholder="Title" />
-			{#if form?.description_error}
-				<p class="error">{form.description_error}</p>
-			{/if}
-			<label for="Description">Description</label>
-			<input type="text" name="description" placeholder="Description" />
-			{#if form?.effort_error}
-				<p class="error">{form.effort_error}</p>
-			{/if}
-			<label for="effort">Effort</label>
-			<input type="number" min="1" name="effort" placeholder="Effort" />
-			<label for="coverage">Coverage</label>
-			<input
-				type="number"
-				min="1"
-				max="100"
-				value="100"
-				name="coverage"
-				placeholder="Coverage (1-100)"
+			<AddMetricButton
+				on_select={async (m, coverage) => {
+					if (control != undefined) {
+						const response = await fetch('/api/metrics/associate', {
+							method: 'POST',
+							headers: { 'Content-Type': 'application/json' },
+							body: JSON.stringify({
+								metric_id: m.identifier,
+								control_id: control.identifier,
+								coverage: coverage
+							})
+						});
+
+						if (response.ok) {
+							if (data.metrics.findIndex((metr) => metr.identifier == m.identifier) == -1) {
+								data.metrics.push(m);
+								data.metrics = data.metrics;
+							}
+						} else {
+							alert('Associating the metric to the control failed. Are they already associated?');
+						}
+						return response.ok;
+					} else {
+						return false;
+					}
+				}}
 			/>
-			{#if form?.coverage_error}
-				<p class="error">{form.coverage_error}</p>
-			{/if}
-			<input type="text" hidden name="control_id" bind:value={control.identifier} />
-			<button type="submit">Add</button>
-			{#if form?.success}
-				<p>Metric added successfully</p>
-			{/if}
-			{#if form?.reason}
-				<p class="error">Adding the metric failed: {form.reason}</p>
-			{/if}
-		</form>
+		</ul>
 	</section>
 {/if}
 
@@ -149,12 +135,7 @@
 			padding: 1rem 2rem;
 		}
 	}
-	form {
-		display: flex;
-		width: 300px;
-		margin: 0rem auto;
-		align-items: start;
-	}
+
 	.row {
 		justify-content: start;
 		gap: 1rem;

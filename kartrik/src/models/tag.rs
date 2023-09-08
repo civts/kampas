@@ -2,7 +2,7 @@ use crate::helpers::cryptography::generate_random_string;
 use serde::{Deserialize, Serialize};
 use ts_rs::TS;
 
-#[derive(Serialize, Deserialize, TS, Debug)]
+#[derive(Serialize, Deserialize, TS, Debug, Clone)]
 #[ts(export, export_to = "../frontend/src/lib/models/bindings/")]
 pub(crate) struct Tag {
     pub(crate) identifier: String,

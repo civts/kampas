@@ -14,21 +14,23 @@
 </head>
 
 {#if metric}
-	<h1>{metric.title}</h1>
-	<p>{metric.description}</p>
 	<section>
-		<h1>Associated Controls</h1>
-		{#each data.controls as control}
-			<a href="/controls/{control.identifier}">
-				{control.title} (coverage: {data.coverage.get(control.identifier)}%)
-			</a>
-		{/each}
-	</section>
-	<section>
+		<h1>{metric.title}</h1>
+		<p>{metric.description}</p>
 		<ul>
 			<li>Progress: {metric.progress}</li>
 			<li>Effort: {metric.effort}</li>
 		</ul>
+	</section>
+	<section>
+		<h1>Associated Controls</h1>
+		<div class="row">
+			{#each data.controls as control}
+				<a href="/controls/{control.identifier}">
+					{control.title} (coverage: {data.coverage.get(control.identifier)}%)
+				</a>
+			{/each}
+		</div>
 	</section>
 	<section>
 		<h1>Tags</h1>

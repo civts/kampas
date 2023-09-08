@@ -2,7 +2,7 @@ use super::Record;
 use crate::models::metric::Metric;
 use crate::models::tag::Tag;
 use serde::{Deserialize, Serialize};
-use std::collections::{BTreeMap, HashMap};
+use std::collections::{BTreeMap, HashMap, HashSet};
 use surrealdb::engine::remote::ws::Client;
 use surrealdb::sql::{Id, Thing};
 use surrealdb::Surreal;
@@ -54,15 +54,19 @@ pub(crate) async fn get_metric(
     Ok(metric)
 }
 
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(crate = "rocket::serde")]
+struct _Helper {
+    id: Thing,
+}
 pub(crate) async fn associate_metric(
     metric_id: &str,
     control_id: &str,
     coverage: u8,
     db: &Surreal<Client>,
 ) -> surrealdb::Result<()> {
-    let response = db
-        // .query("RELATE ((SELECT id FROM tag WHERE identifier = $tid)[0].id)->tags->((SELECT id FROM control WHERE identifier = $cid)[0].id)")
-        .query("RELATE $mid->measures->$cid SET coverage = $coverage")
+    let are_not_associated_already: Option<_Helper> = db
+        .query("SELECT id FROM measures WHERE in=$mid AND out=$cid")
         .bind((
             "cid",
             Thing {
@@ -77,9 +81,37 @@ pub(crate) async fn associate_metric(
                 tb: "metric".to_string(),
             },
         ))
-        .bind(("coverage", coverage))
-        .await?;
-    response.check().map(|_| ())
+        .await?
+        .take(0)?;
+    match are_not_associated_already {
+        Some(id) => Err(surrealdb::Error::Api(
+            surrealdb::error::Api::InvalidRequest(
+                format!("Control and metric are already associated in {id:?}").to_string(),
+            ),
+        )),
+        None => {
+            let response = db
+                // .query("RELATE ((SELECT id FROM tag WHERE identifier = $tid)[0].id)->tags->((SELECT id FROM control WHERE identifier = $cid)[0].id)")
+                .query("RELATE $mid->measures->$cid SET coverage = $coverage")
+                .bind((
+                    "cid",
+                    Thing {
+                        id: Id::String(control_id.to_string()),
+                        tb: "control".to_string(),
+                    },
+                ))
+                .bind((
+                    "mid",
+                    Thing {
+                        id: Id::String(metric_id.to_string()),
+                        tb: "metric".to_string(),
+                    },
+                ))
+                .bind(("coverage", coverage))
+                .await?;
+            response.check().map(|_| ())
+        }
+    }
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -167,7 +199,7 @@ pub(crate) async fn get_tags_for_metric(
     metric_id: &str,
     db: &Surreal<Client>,
 ) -> surrealdb::Result<Vec<Tag>> {
-    let res: Vec<Tag> = db
+    let mut res: Vec<Tag> = db
         // .query("SELECT id FROM $metrics->measures.out<-tags.in")
         // .query("SELECT array::group(id) as ids FROM $metrics->measures.out<-tags.in.id GROUP ALL")
         .query("SELECT * FROM $metrics->measures.out<-tags.in.*")
@@ -182,5 +214,14 @@ pub(crate) async fn get_tags_for_metric(
         .await?
         .take(0)?;
 
-    Ok(res)
+    let mut s = HashSet::<String>::new();
+    let mut de_duplicated: Vec<Tag> = Vec::new();
+    res.iter_mut().for_each(|tag| {
+        if !s.contains(&tag.identifier) {
+            s.insert(tag.identifier.clone());
+            de_duplicated.push(tag.to_owned());
+        }
+    });
+
+    Ok(de_duplicated)
 }

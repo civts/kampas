@@ -49,13 +49,14 @@
 	<div class="createform">
 		<form action="?/add" method="post" use:enhance>
 			<label for="name">Ranking name</label>
-			<input type="text" name="name" placeholder="name" />
-			<label for="minimum_coverage">Minimum coverage (for each control)</label>
+			<input type="text" name="name" id="name" placeholder="name" />
+			<label for="minimum_coverage" >Minimum coverage (for each control)</label>
 			<input
 				type="number"
 				min="1"
 				max="100"
 				name="minimum_coverage"
+				id="minimum_coverage" 
 				bind:value={min_coverage}
 				placeholder="Mimimum coverage for each control"
 			/>

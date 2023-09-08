@@ -37,7 +37,7 @@
 	<h1>Add a new tag</h1>
 	<form action="?/add_tag" method="post" use:enhance>
 		<label for="name">Name</label>
-		<input type="text" name="name" placeholder="Name" />
+		<input type="text" name="name" id="name" placeholder="Name" />
 		<input hidden bind:value={color_hex} type="text" name="color_hex" placeholder="Color" />
 		<div class="picker-container">
 			<ColorInput showAlphaSlider={false} bind:color title="Choose the color" />
