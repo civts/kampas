@@ -9,8 +9,11 @@
 	let any_tag: boolean = false;
 
 	async function add_tag(tag: TagI) {
-		filter_tags.push(tag);
-		filter_tags = filter_tags;
+		if (filter_tags.findIndex((t) => t.identifier == tag.identifier) == -1) {
+			filter_tags.push(tag);
+			filter_tags = filter_tags;
+		}
+
 		return true;
 	}
 

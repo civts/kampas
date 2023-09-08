@@ -14,9 +14,8 @@
 	let selected_tags: TagI[] = [];
 
 	async function addTag(tag: TagI): Promise<boolean> {
-		if (selected_tags.indexOf(tag) == -1) {
+		if (selected_tags.findIndex((t) => t.identifier == tag.identifier) == -1) {
 			selected_tags.push(tag);
-			// So that svelte updates the UI. See https://stackoverflow.com/a/69791545
 			selected_tags = selected_tags;
 		}
 

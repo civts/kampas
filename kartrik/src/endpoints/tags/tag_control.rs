@@ -41,4 +41,30 @@ pub(crate) async fn add_tag_to_control(
     }
 }
 
-//TODO: delete for removing a tag from a control
+#[delete("/tag_control", data = "<form_data>")]
+/// Create a new tag
+pub(crate) async fn remove_tag_from_control(
+    form_data: Form<AddTagToControlFormData>,
+    _r: AddTagsRole,
+    db: &State<Surreal<Client>>,
+) -> status::Custom<String> {
+    match surrealdb::tag::untag_control(&form_data.control_id, &form_data.tag_id, db).await {
+        Ok(_) => {
+            println!(
+                "Control {} un-tagged with {}",
+                form_data.control_id, form_data.tag_id
+            );
+            status::Custom(Status::Ok, "Untagged successfully!".to_string())
+        }
+        Err(err) => {
+            println!(
+                "Error un-tagging control {} with {}: {:?}",
+                form_data.control_id, form_data.tag_id, err
+            );
+            status::Custom(
+                Status::InternalServerError,
+                "Internal Server Error".to_string(),
+            )
+        }
+    }
+}

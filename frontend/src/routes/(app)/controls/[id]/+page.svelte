@@ -22,11 +22,34 @@
 		});
 
 		if (response.ok) {
-			tags.push(tagData);
-			tags = tags;
+			if (tags.findIndex((tag) => tagData.identifier == tag.identifier) == -1) {
+				tags.push(tagData);
+				tags = tags;
+			}
 		}
 
 		return response.ok;
+	}
+
+	async function removeTag(tagData: TagI) {
+		if (control != undefined) {
+			const response = await fetch('/api/tags/add_to_control', {
+				method: 'DELETE',
+				body: JSON.stringify({ tag_id: tagData.identifier, control_id: control.identifier }),
+				headers: {
+					'Content-Type': 'application/json'
+				}
+			});
+
+			if (response.ok) {
+				const index = tags.indexOf(tagData);
+				if (index != -1) {
+					tags.splice(index, 1);
+					tags = tags;
+				}
+			}
+			return response.ok;
+		}
 	}
 
 	onMount(async () => {
@@ -52,7 +75,7 @@
 	<p>{control.description}</p>
 	<div class="row">
 		{#each tags as tag}
-			<Tag {tag} />
+			<Tag {tag} close_callback={removeTag} />
 		{/each}
 		<AddTagButton
 			callback={async (tag) => {

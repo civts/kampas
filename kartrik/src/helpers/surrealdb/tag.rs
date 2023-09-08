@@ -65,6 +65,31 @@ pub(crate) async fn tag_control(
     response.check().map(|_| ())
 }
 
+pub(crate) async fn untag_control(
+    control_id: &str,
+    tag_id: &str,
+    db: &Surreal<Client>,
+) -> surrealdb::Result<()> {
+    let response = db
+        .query("DELETE FROM tags WHERE in=$tid AND out=$cid")
+        .bind((
+            "tid",
+            Thing {
+                id: Id::String(tag_id.to_string()),
+                tb: "tag".to_string(),
+            },
+        ))
+        .bind((
+            "cid",
+            Thing {
+                id: Id::String(control_id.to_string()),
+                tb: "control".to_string(),
+            },
+        ))
+        .await?;
+    response.check().map(|_| ())
+}
+
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(crate = "rocket::serde")]
 struct _Helper {

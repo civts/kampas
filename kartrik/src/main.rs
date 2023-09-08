@@ -15,7 +15,7 @@ use endpoints::{
     },
     rankings::ranking::{get_ranking, get_rankings, new_ranking},
     tags::{
-        tag_control::add_tag_to_control,
+        tag_control::{add_tag_to_control, remove_tag_from_control},
         tags::{add_tag, get_tags, get_tags_for_control},
     },
 };
@@ -42,7 +42,13 @@ async fn rocket() -> _ {
         )
         .mount(
             "/api/v1/tags",
-            routes![add_tag, get_tags, get_tags_for_control, add_tag_to_control],
+            routes![
+                add_tag,
+                get_tags,
+                get_tags_for_control,
+                add_tag_to_control,
+                remove_tag_from_control
+            ],
         )
         .mount(
             "/api/v1/metrics",
