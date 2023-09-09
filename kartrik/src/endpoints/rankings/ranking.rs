@@ -48,6 +48,7 @@ pub(crate) async fn new_ranking(
     db: &State<Surreal<Client>>,
 ) -> status::Custom<String> {
     let name = form_data.name.clone();
+    let minimum_coverage = form_data.minimum_coverage.clone();
     match generate_ranking(&form_data.into_inner(), db).await {
         Ok((metrics, controls)) => {
             // Save ranking to db
@@ -57,6 +58,7 @@ pub(crate) async fn new_ranking(
                 &user.username,
                 RankOrdering::GreedyWeightedSetCover,
                 &name,
+                minimum_coverage,
             );
             match add_ranking(ranking, db).await {
                 Ok(ranking_id) => {
@@ -143,7 +145,7 @@ async fn generate_ranking(
     let metrics_for_control = surrealdb::metric::get_metric_control_association(db).await?;
 
     // Start greedy: take the metric with the most associated controls (divided by its effort), strike out the controls
-    let best_metrics = minimize_cost(
+    let (best_metrics, controls_satisfied) = minimize_cost(
         &controls,
         &metrics,
         &metrics_for_control,
@@ -151,8 +153,7 @@ async fn generate_ranking(
     );
 
     let best_metrics = Vec::from_iter(best_metrics.into_iter());
-    let controls_ids = controls.iter().map(|c| c.identifier.to_owned()).collect();
-    Ok((best_metrics, controls_ids))
+    Ok((best_metrics, controls_satisfied))
 }
 
 async fn get_filtered_controls(
@@ -215,7 +216,7 @@ pub(crate) fn minimize_cost(
     metrics: &[Metric],
     coverage_map: &BTreeMap<String, Vec<(String, u8)>>,
     min_coverage: u8,
-) -> Vec<String> {
+) -> (Vec<String>, Vec<String>) {
     let mut selected_metrics: Vec<String> = vec![];
     let mut unused_metrics: HashSet<&str> = metrics.iter().map(|m| m.identifier.as_str()).collect();
     let empty_vec = Vec::new();
@@ -305,5 +306,16 @@ pub(crate) fn minimize_cost(
         }
     }
 
-    selected_metrics
+    let covered_controls = controls_coverage
+        .iter()
+        .map(|(id, coverage)| {
+            if coverage >= &min_coverage {
+                return Some(id.clone().to_owned());
+            } else {
+                return None;
+            }
+        })
+        .flatten()
+        .collect();
+    (selected_metrics, covered_controls)
 }

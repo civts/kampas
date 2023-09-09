@@ -53,6 +53,13 @@
 	$: filtered_controls = data.controls.filter((c) =>
 		filter_by_tag(c, data.control_tags, filter_tags, any_tag)
 	);
+
+	$: average_progress =
+		filtered_metrics.reduce((prev, m) => {
+			return prev + (m?.progress ?? 0);
+		}, 0) / filtered_metrics.length;
+
+	$: rounded_average_progress = (Math.round(average_progress * 100) / 100).toFixed(2);
 </script>
 
 <head>
@@ -67,6 +74,8 @@
 		<span>Created on: {new Date(Number.parseInt(data.ranking.created_at)).toUTCString()}</span>
 		<br />
 		<span>Ordering: {data.ranking.ordering}</span>
+		<br />
+		<span>Minimum coverage: {data.ranking.minimum_coverage}</span>
 		<section>
 			<h2 class="lessmargin">Filter by tag</h2>
 			<p>Click on a tag to remove it</p>
@@ -94,10 +103,11 @@
 		</section>
 		<section>
 			<h2>Metrics</h2>
+			<p>Average progress of these metrics: {rounded_average_progress}%</p>
 			<ol>
 				{#each filtered_metrics || [] as m}
 					<li>
-						<a href="/metrics/{m?.identifier}">{m?.title}</a>
+						<a href="/metrics/{m?.identifier}">{m?.title}</a> (progress: {m?.progress}%)
 					</li>
 				{/each}
 			</ol>

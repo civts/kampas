@@ -16,6 +16,9 @@ pub(crate) struct Ranking {
     pub(crate) created_at: String,
     /// How it was created
     pub(crate) ordering: RankOrdering,
+    /// The minimum coverage value a control must
+    /// have to be considered complete
+    pub(crate) minimum_coverage: u8,
     pub(crate) identifier: String,
     pub(crate) name: String,
 }
@@ -27,6 +30,7 @@ impl Ranking {
         created_by: &str,
         ordering: RankOrdering,
         name: &str,
+        minimum_coverage: u8,
     ) -> Self {
         let created_at = chrono::offset::Utc::now().timestamp_millis().to_string();
         let id = generate_random_string(16);
@@ -38,6 +42,7 @@ impl Ranking {
             metrics,
             controls,
             ordering,
+            minimum_coverage,
         }
     }
 }
