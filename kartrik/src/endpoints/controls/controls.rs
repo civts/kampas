@@ -136,14 +136,14 @@ pub(crate) async fn get_control_completion(
     }
 }
 
-#[post("/get_completion_batch", data = "<form_data>")]
+#[post("/get_completion_batch", data = "<req_data>")]
 pub(crate) async fn get_control_completion_b(
     user: User,
-    form_data: String,
+    req_data: String,
     _required_roles: GetControlsRole,
     db: &State<Surreal<Client>>,
 ) -> status::Custom<String> {
-    let ids_res = serde_json::from_str::<Vec<String>>(&form_data);
+    let ids_res = serde_json::from_str::<Vec<String>>(&req_data);
     match ids_res {
         Ok(control_ids) => {
             let controls_res = get_control_completion_batch(db, control_ids).await;

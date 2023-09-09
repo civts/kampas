@@ -39,21 +39,19 @@ pub(crate) async fn get_tags_for_control(
     Ok(tags)
 }
 
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(crate = "rocket::serde")]
+struct _Helper2 {
+    id: Thing,
+}
+
 pub(crate) async fn tag_control(
     control_id: &str,
     tag_id: &str,
     db: &Surreal<Client>,
 ) -> surrealdb::Result<()> {
-    let response = db
-        // .query("RELATE ((SELECT id FROM tag WHERE identifier = $tid)[0].id)->tags->((SELECT id FROM control WHERE identifier = $cid)[0].id)")
-        .query("RELATE $tid->tags->$cid")
-        .bind((
-            "cid",
-            Thing {
-                id: Id::String(control_id.to_string()),
-                tb: "control".to_string(),
-            },
-        ))
+    let existing_tag: Option<_Helper2> = db
+        .query("SELECT id FROM tags WHERE in=$tid AND out=$cid")
         .bind((
             "tid",
             Thing {
@@ -61,8 +59,43 @@ pub(crate) async fn tag_control(
                 tb: "tag".to_string(),
             },
         ))
-        .await?;
-    response.check().map(|_| ())
+        .bind((
+            "cid",
+            Thing {
+                id: Id::String(control_id.to_string()),
+                tb: "control".to_string(),
+            },
+        ))
+        .await?
+        .take(0)?;
+    match existing_tag {
+        Some(existing) => Err(surrealdb::Error::Api(
+            surrealdb::error::Api::InvalidRequest(
+                format!("Control and tag are already associated in {existing:?}").to_string(),
+            ),
+        )),
+        None => {
+            let response = db
+                // .query("RELATE ((SELECT id FROM tag WHERE identifier = $tid)[0].id)->tags->((SELECT id FROM control WHERE identifier = $cid)[0].id)")
+                .query("RELATE $tid->tags->$cid")
+                .bind((
+                    "cid",
+                    Thing {
+                        id: Id::String(control_id.to_string()),
+                        tb: "control".to_string(),
+                    },
+                ))
+                .bind((
+                    "tid",
+                    Thing {
+                        id: Id::String(tag_id.to_string()),
+                        tb: "tag".to_string(),
+                    },
+                ))
+                .await?;
+            response.check().map(|_| ())
+        }
+    }
 }
 
 pub(crate) async fn untag_control(
@@ -130,4 +163,21 @@ pub(crate) async fn get_tag_control_association(
     });
 
     Ok(res)
+}
+
+pub(crate) async fn get_tags_batch(
+    db: &Surreal<Client>,
+    control_ids: Vec<String>,
+) -> surrealdb::Result<Vec<Vec<Tag>>> {
+    let controls = Vec::from_iter(control_ids.iter().map(|c_id| Thing {
+        id: Id::String(c_id.clone()),
+        tb: "control".to_string(),
+    }));
+    let qres: Vec<Vec<Tag>> = db
+        .query("SELECT * FROM $cid<-tags.in.*")
+        .bind(("cid", controls))
+        .await?
+        .take(0)?;
+
+    Ok(qres)
 }

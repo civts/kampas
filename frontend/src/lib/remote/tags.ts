@@ -34,3 +34,27 @@ export async function get_tags_for_metric(metric_id: String, session: Session) {
 		return [];
 	}
 }
+
+export async function get_tags_for_control_batch(control_ids: string[], session: Session) {
+	console.log('Requesting batch tags');
+	const response = await fetch(`${BACKEND_URL}/api/v1/tags/get_tags_batch`, {
+		method: 'POST',
+		headers: { Authorization: `Bearer ${session.auth_token}`, 'Content-Type': 'application/json' },
+		body: JSON.stringify(control_ids)
+	});
+	if (response.ok) {
+		const result = new Map<string, Tag[]>();
+		const data: Tag[][] = await response.json();
+
+		for (let i = 0; i < data.length; i++) {
+			const control_id = control_ids[i];
+			const tags = data[i];
+			result.set(control_id, tags);
+		}
+
+		const stringified = JSON.stringify(Array.from(result.entries()));
+		return new Response(stringified);
+	} else {
+		return new Response('Could not talk to server', { status: 500 });
+	}
+}

@@ -76,3 +76,40 @@ pub(crate) async fn get_tags_for_control(
         }
     }
 }
+
+#[post("/get_tags_batch", data = "<reqdata>")]
+pub(crate) async fn get_tags_batch(
+    user: User,
+    reqdata: String,
+    _required_roles: GetTagsRole,
+    db: &State<Surreal<Client>>,
+) -> status::Custom<String> {
+    let ids_res = serde_json::from_str::<Vec<String>>(&reqdata);
+    match ids_res {
+        Ok(control_ids) => {
+            let tags_res = surrealdb::tag::get_tags_batch(db, control_ids).await;
+            println!("{} is requesting the tags", user.username);
+            match tags_res {
+                Ok(tag_vecs) => status::Custom(
+                    Status::Ok,
+                    serde_json::to_string(&tag_vecs)
+                        .expect("can serialize the tags completion to JSON"),
+                ),
+                Err(err) => {
+                    println!("Something went wrong getting the tags: {}", err);
+                    status::Custom(
+                        Status::InternalServerError,
+                        "Internal Server Error".to_string(),
+                    )
+                }
+            }
+        }
+        Err(err) => {
+            println!("Something went wrong reading the ids: {}", err);
+            status::Custom(
+                Status::BadRequest,
+                Status::BadRequest.reason_lossy().to_string(),
+            )
+        }
+    }
+}

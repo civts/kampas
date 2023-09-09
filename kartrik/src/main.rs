@@ -19,7 +19,7 @@ use endpoints::{
     rankings::ranking::{get_ranking, get_rankings, new_ranking},
     tags::{
         tag_control::{add_tag_to_control, remove_tag_from_control},
-        tags::{add_tag, get_tags, get_tags_for_control},
+        tags::{add_tag, get_tags, get_tags_batch, get_tags_for_control},
     },
 };
 use helpers::{cors::CORS, surrealdb::connection::get_client};
@@ -50,6 +50,7 @@ async fn rocket() -> _ {
             routes![
                 add_tag,
                 get_tags,
+                get_tags_batch,
                 get_tags_for_control,
                 add_tag_to_control,
                 remove_tag_from_control

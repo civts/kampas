@@ -27,35 +27,38 @@
 </head>
 
 {#if data?.user}
-	<p>The company has {controls_count} controls</p>
+	<section>
+		<h1>Controls</h1>
+		<p>The company has {controls_count} controls</p>
 
-	<p>See the complete list of <a href="/controls">all controls</a></p>
+		<p>See the complete list of <a href="/controls">all controls</a></p>
 
-	<div class="row">
-		<div>
-			<RoundGauge
-				value={controls_completed}
-				max_value={controls_count}
-				color="green"
-				text={`${controls_completed} / ${controls_count}`}
-			/>
-			<p>{controls_completed} of these have been completed</p>
-		</div>
-
-		<div>
-			<RoundGauge value={average_completion} color="purple" />
-			<p>On average, they are {Math.round(average_completion)}% complete</p>
-		</div>
-
-		{#if controls_count != 0}
+		<div class="row">
 			<div>
-				<div class="barchart">
-					<BarChart data={progress} />
-				</div>
-				<p>Here is the distribution of how complete they are</p>
+				<RoundGauge
+					value={controls_completed}
+					max_value={controls_count}
+					color="green"
+					text={`${controls_completed} / ${controls_count}`}
+				/>
+				<p>{controls_completed} of these have been completed</p>
 			</div>
-		{/if}
-	</div>
+
+			<div>
+				<RoundGauge value={average_completion} color="purple" />
+				<p>On average, they are {Math.round(average_completion)}% complete</p>
+			</div>
+
+			{#if controls_count != 0}
+				<div>
+					<div class="barchart">
+						<BarChart data={progress} />
+					</div>
+					<p>Here is the distribution of how complete they are</p>
+				</div>
+			{/if}
+		</div>
+	</section>
 
 	<!-- <p>And here is the graph of how complete they have been in time</p> -->
 {:else}

@@ -14,7 +14,7 @@
 	<ol>
 		{#each data?.controls || [] as control}
 			<li>
-				<ControlListItem {control} />
+				<ControlListItem {control} tags={data.tags.get(control.identifier)} />
 			</li>
 		{:else}
 			<p>loading...</p>
