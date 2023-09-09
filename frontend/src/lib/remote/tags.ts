@@ -52,9 +52,8 @@ export async function get_tags_for_control_batch(control_ids: string[], session:
 			result.set(control_id, tags);
 		}
 
-		const stringified = JSON.stringify(Array.from(result.entries()));
-		return new Response(stringified);
+		return result;
 	} else {
-		return new Response('Could not talk to server', { status: 500 });
+		return new Map();
 	}
 }

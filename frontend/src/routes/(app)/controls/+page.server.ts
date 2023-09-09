@@ -8,11 +8,10 @@ export const load: PageServerLoad = async ({ cookies }) => {
 	let session = await getSessionFromCookiesOrCreate(cookies);
 
 	const controls = await get_controls(session);
-	const tags_resp = await get_tags_for_control_batch(
+	const tags = await get_tags_for_control_batch(
 		controls.map((c) => c.identifier),
 		session
 	);
 
-	const tags: Map<string, Tag[]> = new Map(await tags_resp.json());
 	return { controls, tags };
 };
