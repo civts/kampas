@@ -14,7 +14,8 @@ use endpoints::{
     },
     metrics::metrics::{
         add_metric, associate_metric, get_coverage_for_metric, get_metric, get_metrics,
-        get_metrics_for_control, get_tags_for_metric, update_metric,
+        get_metrics_for_control, get_metrics_progess, get_number_controls_batch,
+        get_tags_for_metric, update_metric,
     },
     rankings::ranking::{get_ranking, get_rankings, new_ranking},
     tags::{
@@ -66,7 +67,9 @@ async fn rocket() -> _ {
                 get_metrics_for_control,
                 get_coverage_for_metric,
                 associate_metric,
-                get_tags_for_metric
+                get_tags_for_metric,
+                get_metrics_progess,
+                get_number_controls_batch
             ],
         )
         .mount(

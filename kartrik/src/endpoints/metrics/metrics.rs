@@ -5,6 +5,8 @@ use crate::{
         add_metric as add_metricl, associate_metric as associate_metricl,
         get_coverage_for_metric as get_coverage_for_metricc, get_metric as get_metricl,
         get_metrics as get_metricss, get_metrics_for_control as get_metrics_for_controll,
+        get_metrics_progess as get_metrics_progesss,
+        get_number_controls_batch as get_number_controls_batchh,
         get_tags_for_metric as get_tags_for_metricc, update_metric as update_metricc,
     },
     models::{metric::Metric, role::Role, user::User},
@@ -272,6 +274,72 @@ pub(crate) async fn update_metric(
             status::Custom(
                 Status::InternalServerError,
                 Status::InternalServerError.reason_lossy().to_string(),
+            )
+        }
+    }
+}
+
+#[get("/progress")]
+pub(crate) async fn get_metrics_progess(
+    user: User,
+    _required_roles: GetMetricsRole,
+    db: &State<Surreal<Client>>,
+) -> status::Custom<String> {
+    let progress_res = get_metrics_progesss(db).await;
+    println!("{} is requesting the metrics progress", user.username);
+    match progress_res {
+        Ok(metrics) => status::Custom(
+            Status::Ok,
+            serde_json::to_string(&metrics).expect("can serialize the progress to JSON"),
+        ),
+        Err(err) => {
+            println!("Something went wrong getting the metrics progress: {}", err);
+            status::Custom(
+                Status::InternalServerError,
+                Status::InternalServerError.reason_lossy().to_string(),
+            )
+        }
+    }
+}
+
+#[post("/get_number_controls_batch", data = "<req_data>")]
+pub(crate) async fn get_number_controls_batch(
+    user: User,
+    _required_roles: GetMetricsRole,
+    req_data: String,
+    db: &State<Surreal<Client>>,
+) -> status::Custom<String> {
+    let ids_res = serde_json::from_str::<Vec<String>>(&req_data);
+    match ids_res {
+        Ok(ids) => {
+            let progress_res = get_number_controls_batchh(db, ids).await;
+            println!(
+                "{} is requesting the controls associated to metrics (batch)",
+                user.username
+            );
+            match progress_res {
+                Ok(metrics) => status::Custom(
+                    Status::Ok,
+                    serde_json::to_string(&metrics)
+                        .expect("can serialize the controls associated to metrics (batch) to JSON"),
+                ),
+                Err(err) => {
+                    println!(
+                "Something went wrong getting the controls associated to metrics (batch): {}",
+                err
+            );
+                    status::Custom(
+                        Status::InternalServerError,
+                        Status::InternalServerError.reason_lossy().to_string(),
+                    )
+                }
+            }
+        }
+        Err(err) => {
+            println!("Something went wrong reading the ids: {}", err);
+            status::Custom(
+                Status::BadRequest,
+                Status::BadRequest.reason_lossy().to_string(),
             )
         }
     }

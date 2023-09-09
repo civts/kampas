@@ -240,3 +240,41 @@ pub(crate) async fn update_metric(
         _ => panic!("We don't do that here. We shall only use String IDs"),
     }
 }
+
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(crate = "rocket::serde")]
+struct Helper3 {
+    progress: u8,
+}
+
+/// Returns the progress of all metrics
+pub(crate) async fn get_metrics_progess(db: &Surreal<Client>) -> surrealdb::Result<Vec<u8>> {
+    let res: Vec<Helper3> = db.query("SELECT progress FROM metric").await?.take(0)?;
+
+    let r2 = res.iter().map(|h| h.progress).collect();
+
+    Ok(r2)
+}
+
+/// Returns the progress of all metrics
+pub(crate) async fn get_number_controls_batch(
+    db: &Surreal<Client>,
+    ids: Vec<String>,
+) -> surrealdb::Result<Vec<u64>> {
+    let ids_vec: Vec<Thing> = ids
+        .iter()
+        .map(|id| Thing {
+            tb: "metric".to_string(),
+            id: Id::String(id.to_string()),
+        })
+        .collect();
+    let res: Vec<HelperR2> = db
+        .query("SELECT id as ids FROM $mid->measures")
+        .bind(("mid", ids_vec))
+        .await?
+        .take(0)?;
+
+    let r2 = res.iter().map(|h| h.ids.len() as u64).collect();
+
+    Ok(r2)
+}

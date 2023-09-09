@@ -15,9 +15,11 @@
 		let mindata = Math.round(Math.min(...data));
 		let maxdata = Math.round(Math.max(...data));
 
-		let frequency = Array(maxdata - mindata + 1).fill(0);
-		data.forEach((n) => {
-			const idx = Math.round(n - mindata);
+		const slots = 20;
+		let c = (maxdata - mindata) / slots;
+		let frequency: number[] = Array(slots + 1).fill(0);
+		data.forEach((x) => {
+			const idx = Math.round((x - mindata) / c);
 			frequency[idx] += 1;
 		});
 		let maxFreq = Math.max(...frequency);
@@ -39,8 +41,8 @@
 		let x = scaleBand()
 			.range([0, width])
 			.domain(
-				frequency.map(function (_, index) {
-					return Math.round(index).toString();
+				frequency.map(function (freq, index) {
+					return Math.round(index * c).toString();
 				})
 			)
 			.padding(0.2);
@@ -63,7 +65,7 @@
 			.enter()
 			.append('rect')
 			.attr('x', (_freq, index) => {
-				return x(Math.round(index).toString())!;
+				return x(Math.round(index * c).toString())!;
 			})
 			.attr('y', function (freq) {
 				return y(freq);

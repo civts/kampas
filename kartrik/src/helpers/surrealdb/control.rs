@@ -74,9 +74,10 @@ pub(crate) async fn get_control_completion(
         ))
         .await?
         .take(0)?;
-    let res = query_res.iter().fold(0f64, |prev, i| {
+    let mut res = query_res.iter().fold(0f64, |prev, i| {
         prev + (i.progress as f64 * i.coverage as f64 / 100f64)
     });
+    res = res.clamp(0f64, 100f64);
 
     Ok(res)
 }
@@ -111,6 +112,7 @@ pub(crate) async fn get_control_completion_batch(
                 let coverage = *h.coverage.get(i).expect("There should be a coverage here");
 
                 result = result + (progress as f64 * coverage as f64 / 100f64);
+                result = result.clamp(0f64, 100f64);
             }
             result
         })
