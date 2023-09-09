@@ -92,3 +92,21 @@ export async function get_control_completion_batch(
 		return [];
 	}
 }
+
+export async function get_number_of_metrics_per_control_batch(
+	session: Session
+): Promise<Map<string, number>> {
+	try {
+		const controls_resp = await fetch(BACKEND_URL + '/api/v1/controls/get_metrics_count_batch', {
+			headers: {
+				Authorization: `Bearer ${session.auth_token}`
+			}
+		});
+
+		let completion: Map<string, number> = new Map(Object.entries(await controls_resp.json()));
+		return completion;
+	} catch (error) {
+		console.error('Error loading completion for control: ', error);
+		return new Map();
+	}
+}

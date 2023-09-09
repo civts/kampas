@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use crate::models::control::Control;
 use serde::{Deserialize, Serialize};
 use surrealdb::engine::remote::ws::Client;
@@ -117,6 +119,33 @@ pub(crate) async fn get_control_completion_batch(
             result
         })
         .collect();
+
+    Ok(res)
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(crate = "rocket::serde")]
+struct _Helper3 {
+    id: Thing,
+    count: u64,
+}
+pub(crate) async fn get_metrics_for_control_count_batch(
+    db: &Surreal<Client>,
+) -> surrealdb::Result<HashMap<String, u64>> {
+    let controls: Vec<_Helper3> = db
+        // .query("SELECT id FROM control WHERE id NOT IN (SELECT out FROM measures GROUP out).out")
+        // .query("SELECT * FROM control WHERE count(<-measures) = 0")
+        .query("SELECT id, count(<-measures) FROM control")
+        .await?
+        .take(0)?;
+
+    let mut res = HashMap::<String, u64>::new();
+    controls.iter().for_each(|h| match &h.id.id {
+        Id::String(id_str) => {
+            res.insert(id_str.clone(), h.count);
+        }
+        _ => panic!("We don't do that here. We shall only use String IDs"),
+    });
 
     Ok(res)
 }

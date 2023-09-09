@@ -4,6 +4,7 @@ use crate::{
         add_control as add_controll, get_control as get_controll,
         get_control_completion as get_control_completionn, get_control_completion_batch,
         get_controls as get_controlss, get_controls_for_metric as get_controls_for_metricc,
+        get_metrics_for_control_count_batch as get_metrics_for_control_count_batchh,
     },
     models::{control::Control, role::Role, user::User},
 };
@@ -168,6 +169,36 @@ pub(crate) async fn get_control_completion_b(
             status::Custom(
                 Status::BadRequest,
                 Status::BadRequest.reason_lossy().to_string(),
+            )
+        }
+    }
+}
+
+#[get("/get_metrics_count_batch")]
+pub(crate) async fn get_metrics_for_control_count_batch(
+    user: User,
+    _required_roles: GetControlsRole,
+    db: &State<Surreal<Client>>,
+) -> status::Custom<String> {
+    println!(
+        "{} is requesting the number of metrics associated to controls (batch)",
+        user.username
+    );
+    let controls_res = get_metrics_for_control_count_batchh(db).await;
+    match controls_res {
+        Ok(data) => status::Custom(
+            Status::Ok,
+            serde_json::to_string(&data)
+                .expect("can serialize the number of associated metrics (batch) to JSON"),
+        ),
+        Err(err) => {
+            println!(
+                "Something went wrong getting the number of associated metrics (batch): {}",
+                err
+            );
+            status::Custom(
+                Status::InternalServerError,
+                Status::InternalServerError.reason_lossy().to_string(),
             )
         }
     }

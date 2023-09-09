@@ -1,12 +1,11 @@
 import { getSessionFromCookiesOrCreate } from '$lib/session_cookies';
 import {
-	get_control_completion,
 	get_control_completion_batch,
-	get_controls
+	get_controls,
+	get_number_of_metrics_per_control_batch
 } from '$lib/remote/controls';
 import {
 	getMetrics,
-	getMetricsForControl,
 	get_control_associated_to_metric_batch,
 	get_metrics_progress
 } from '$lib/remote/metrics';
@@ -44,11 +43,14 @@ export async function load({ cookies }) {
 		number_of_controls_per_metric.set(mid, associated_controls);
 	}
 
+	const number_of_metrics_per_control = await get_number_of_metrics_per_control_batch(session);
+
 	return {
 		controls,
 		completion,
 		metrics,
 		metrics_progress,
-		number_of_controls_per_metric
+		number_of_controls_per_metric,
+		number_of_metrics_per_control
 	};
 }

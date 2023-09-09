@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { afterUpdate, onMount } from 'svelte';
+	import { onMount } from 'svelte';
 	import BarChart from '../../components/bar_chart.svelte';
 	import RoundGauge from '../../components/round_gauge.svelte';
 	import type { PageData } from './$types';
@@ -24,6 +24,20 @@
 		(c) => data.completion.get(c.identifier) || 0 >= 100
 	).length;
 
+	let sortedControlsColumn = 'title';
+	let sortControlsDirection = 1;
+	$: sorted_controls = data.controls.sort((a, b) => {
+		if (sortedControlsColumn == 'title') {
+			return a.title.localeCompare(b.title) * sortControlsDirection;
+		} else if (sortedControlsColumn === 'metrics') {
+			const na = data.number_of_metrics_per_control.get(a.identifier) ?? 0;
+			const nb = data.number_of_metrics_per_control.get(b.identifier) ?? 0;
+			const cmp = na - nb;
+			return cmp * sortControlsDirection;
+		}
+		return 0;
+	});
+
 	const metrics_count = data.metrics_progress.length;
 	const metrics_sum = data.metrics_progress.reduce(
 		(total, metric) => total.valueOf() + metric.valueOf(),
@@ -36,7 +50,7 @@
 
 	const metrics_completed = data.metrics_progress.filter((c) => c >= 100).length;
 
-	let sortedColumn = '';
+	let sortedColumn = 'title';
 	let sortDirection = 1;
 
 	let sortedMetrics = [...data.metrics];
@@ -131,7 +145,7 @@
 		<table cellspacing="0">
 			<tr>
 				<th on:click={() => sortTable('title')}>
-					Metric
+					Metric title
 					{#if sortedColumn === 'title'}
 						<span class={sortDirection === 1 ? 'arrow down' : 'arrow up'} />
 					{/if}
@@ -158,6 +172,49 @@
 			{/each}
 		</table>
 	</section>
+	<section>
+		<h1>Controls and Metrics</h1>
+		<table cellspacing="0">
+			<tr>
+				<th
+					on:click={() => {
+						if (sortedControlsColumn == 'title') {
+							sortControlsDirection = -sortControlsDirection;
+						}
+						sortedControlsColumn = 'title';
+					}}
+				>
+					Control title
+					{#if sortedControlsColumn === 'title'}
+						<span class={sortControlsDirection === 1 ? 'arrow down' : 'arrow up'} />
+					{/if}
+				</th>
+				<th
+					on:click={() => {
+						if (sortedControlsColumn == 'metrics') {
+							sortControlsDirection = -sortControlsDirection;
+						}
+						sortedControlsColumn = 'metrics';
+					}}
+				>
+					# of associated metrics
+					{#if sortedControlsColumn === 'metrics'}
+						<span class={sortControlsDirection === 1 ? 'arrow down' : 'arrow up'} />
+					{/if}
+				</th>
+			</tr>
+			{#each sorted_controls as control}
+				<tr>
+					<td>
+						<a href="/controls/{control.identifier}">{control.title}</a>
+					</td>
+					<td>
+						{data.number_of_metrics_per_control.get(control.identifier) ?? 0}
+					</td>
+				</tr>
+			{/each}
+		</table>
+	</section>
 {:else}
 	<center>Sry, who are you?</center>
 {/if}
@@ -168,6 +225,9 @@
 		justify-content: center;
 		align-items: center;
 	}
+	section {
+		margin-top: 3rem;
+	}
 	table {
 		max-width: 100%;
 		margin-top: 2rem;
@@ -177,6 +237,7 @@
 		td,
 		th {
 			padding: 0.5rem 1rem;
+			max-width: 75ch;
 		}
 		tr {
 			border-spacing: 0;
