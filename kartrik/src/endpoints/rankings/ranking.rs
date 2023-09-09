@@ -49,10 +49,11 @@ pub(crate) async fn new_ranking(
 ) -> status::Custom<String> {
     let name = form_data.name.clone();
     match generate_ranking(&form_data.into_inner(), db).await {
-        Ok(metrics) => {
+        Ok((metrics, controls)) => {
             // Save ranking to db
             let ranking = Ranking::new(
                 metrics,
+                controls,
                 &user.username,
                 RankOrdering::GreedyWeightedSetCover,
                 &name,
@@ -132,7 +133,7 @@ pub(crate) async fn get_ranking(
 async fn generate_ranking(
     params: &CreateRankingParams,
     db: &State<Surreal<Client>>,
-) -> Result<Vec<String>, Error> {
+) -> Result<(Vec<String>, Vec<String>), Error> {
     // Get all the controls from the database
     let controls = get_filtered_controls(db, params).await?;
     // Get all the metrics from the database
@@ -149,7 +150,9 @@ async fn generate_ranking(
         params.minimum_coverage,
     );
 
-    Ok(Vec::from_iter(best_metrics.into_iter()))
+    let best_metrics = Vec::from_iter(best_metrics.into_iter());
+    let controls_ids = controls.iter().map(|c| c.identifier.to_owned()).collect();
+    Ok((best_metrics, controls_ids))
 }
 
 async fn get_filtered_controls(

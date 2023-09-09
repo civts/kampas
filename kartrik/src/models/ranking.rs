@@ -8,6 +8,8 @@ use ts_rs::TS;
 pub(crate) struct Ranking {
     /// Identifiers of the metrics!
     pub(crate) metrics: Vec<String>,
+    /// Identifiers of the controls
+    pub(crate) controls: Vec<String>,
     /// Username of who created this one
     pub(crate) created_by: String,
     /// Timestamp of when it was created
@@ -21,6 +23,7 @@ pub(crate) struct Ranking {
 impl Ranking {
     pub(crate) fn new(
         metrics: Vec<String>,
+        controls: Vec<String>,
         created_by: &str,
         ordering: RankOrdering,
         name: &str,
@@ -33,6 +36,7 @@ impl Ranking {
             created_by: created_by.to_string(),
             name: name.to_string(),
             metrics,
+            controls,
             ordering,
         }
     }
