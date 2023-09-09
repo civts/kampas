@@ -16,7 +16,7 @@
 <nav>
 	<a class="rowcenter" href="/">
 		<img src="/favicon.svg" alt="Kartik logo" />
-		<p>Kartik</p>
+		<p class="kartik">Kartik</p>
 	</a>
 
 	<div>
@@ -84,5 +84,9 @@
 		border-radius: 0.5rem;
 		padding: 0.75rem 1rem;
 		position: relative;
+	}
+	.kartik {
+		font-weight: 600;
+		letter-spacing: 0.01em;
 	}
 </style>
