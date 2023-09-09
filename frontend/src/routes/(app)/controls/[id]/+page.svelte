@@ -71,6 +71,7 @@
 
 {#if control}
 	<h1>{control.title}</h1>
+	<p>Progress: {data.progress}%</p>
 	<p>{control.description}</p>
 	<div class="row">
 		{#each tags as tag}
