@@ -6,11 +6,8 @@
 	export let close_callback: ((t: Tag) => Promise<any>) | undefined = undefined;
 
 	let elem: HTMLElement;
-	afterUpdate(() => {
-		elem.style.backgroundColor = `#${tag.color_hex}`;
-		const textColor = isColorLight(tag.color_hex) ? 'var(--input-bg)' : 'var(--text-color)';
-		elem.style.color = textColor;
-	});
+
+	$: textColor = isColorLight(tag.color_hex) ? 'var(--input-bg)' : 'var(--text-color)';
 
 	function isColorLight(color: String) {
 		// Convert color to RGB format
@@ -22,7 +19,7 @@
 </script>
 
 <div class="tagdiv">
-	<div bind:this={elem}>
+	<div style="background-color: #{tag.color_hex}; color: {textColor}" bind:this={elem}>
 		{tag.name}
 	</div>
 	{#if close_callback}
