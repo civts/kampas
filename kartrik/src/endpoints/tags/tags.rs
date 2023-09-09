@@ -49,7 +49,7 @@ pub(crate) async fn get_tags(
             println!("Something went wrong getting the tags: {}", err);
             status::Custom(
                 Status::InternalServerError,
-                "Internal Server Error".to_string(),
+                Status::InternalServerError.reason_lossy().to_string(),
             )
         }
     }
@@ -71,7 +71,7 @@ pub(crate) async fn get_tags_for_control(
             println!("Something went wrong getting the tags: {}", err);
             status::Custom(
                 Status::InternalServerError,
-                "Internal Server Error".to_string(),
+                Status::InternalServerError.reason_lossy().to_string(),
             )
         }
     }
@@ -99,7 +99,7 @@ pub(crate) async fn get_tags_batch(
                     println!("Something went wrong getting the tags: {}", err);
                     status::Custom(
                         Status::InternalServerError,
-                        "Internal Server Error".to_string(),
+                        Status::InternalServerError.reason_lossy().to_string(),
                     )
                 }
             }

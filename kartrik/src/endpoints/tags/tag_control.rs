@@ -35,7 +35,7 @@ pub(crate) async fn add_tag_to_control(
             );
             status::Custom(
                 Status::InternalServerError,
-                "Internal Server Error".to_string(),
+                Status::InternalServerError.reason_lossy().to_string(),
             )
         }
     }
@@ -63,7 +63,7 @@ pub(crate) async fn remove_tag_from_control(
             );
             status::Custom(
                 Status::InternalServerError,
-                "Internal Server Error".to_string(),
+                Status::InternalServerError.reason_lossy().to_string(),
             )
         }
     }

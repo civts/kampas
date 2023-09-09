@@ -37,7 +37,7 @@ pub(crate) async fn add_control(
             println!("Could not insert the new control in the database: {err:?}");
             status::Custom(
                 Status::InternalServerError,
-                "Internal Server Error".to_string(),
+                Status::InternalServerError.reason_lossy().to_string(),
             )
         }
     }
@@ -61,7 +61,7 @@ pub(crate) async fn get_controls(
             println!("Something went wrong getting the controls: {}", err);
             status::Custom(
                 Status::InternalServerError,
-                "Internal Server Error".to_string(),
+                Status::InternalServerError.reason_lossy().to_string(),
             )
         }
     }
@@ -85,7 +85,7 @@ pub(crate) async fn get_control(
             println!("Something went wrong getting the controls: {}", err);
             status::Custom(
                 Status::InternalServerError,
-                "Internal Server Error".to_string(),
+                Status::InternalServerError.reason_lossy().to_string(),
             )
         }
     }
@@ -109,7 +109,7 @@ pub(crate) async fn get_controls_for_metric(
             println!("Something went wrong getting the controls: {}", err);
             status::Custom(
                 Status::InternalServerError,
-                "Internal Server Error".to_string(),
+                Status::InternalServerError.reason_lossy().to_string(),
             )
         }
     }
@@ -130,7 +130,7 @@ pub(crate) async fn get_control_completion(
             println!("Something went wrong getting the controls: {}", err);
             status::Custom(
                 Status::InternalServerError,
-                "Internal Server Error".to_string(),
+                Status::InternalServerError.reason_lossy().to_string(),
             )
         }
     }
@@ -158,7 +158,7 @@ pub(crate) async fn get_control_completion_b(
                     println!("Something went wrong getting the controls: {}", err);
                     status::Custom(
                         Status::InternalServerError,
-                        "Internal Server Error".to_string(),
+                        Status::InternalServerError.reason_lossy().to_string(),
                     )
                 }
             }

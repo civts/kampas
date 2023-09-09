@@ -102,7 +102,7 @@ pub(crate) async fn get_rankings(
             println!("Something went wrong getting the rankings: {}", err);
             status::Custom(
                 Status::InternalServerError,
-                "Internal Server Error".to_string(),
+                Status::InternalServerError.reason_lossy().to_string(),
             )
         }
     }
@@ -126,7 +126,7 @@ pub(crate) async fn get_ranking(
             println!("Something went wrong getting the rankings: {}", err);
             status::Custom(
                 Status::InternalServerError,
-                "Internal Server Error".to_string(),
+                Status::InternalServerError.reason_lossy().to_string(),
             )
         }
     }
