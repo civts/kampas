@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { Tag as T } from '$lib/models/bindings/Tag';
-	import { onMount } from 'svelte';
+	import { afterUpdate, onMount } from 'svelte';
 	import Tag from './tag.svelte';
 
 	/**
@@ -11,14 +11,22 @@
 	export let callback: (t: T) => Promise<boolean>;
 
 	let showOverlay = false;
-	let tags: T[] = [];
+	let tags: T[] | undefined = undefined;
 
 	async function fetchTags() {
 		const response = await fetch('/api/tags');
 		tags = await response.json();
 	}
 
-	onMount(fetchTags);
+	afterUpdate(() => {
+		if (showOverlay) {
+			if (tags == undefined) {
+				fetchTags();
+			}
+		} else {
+			tags = undefined;
+		}
+	});
 </script>
 
 <button type="button" on:click={() => (showOverlay = true)}>Add tag</button>
@@ -27,7 +35,7 @@
 	<div class="overlay" on:click={() => (showOverlay = false)}>
 		<div class="overlay-content" on:click={(e) => e.stopPropagation()}>
 			<div class="grid">
-				{#each tags as tag (tag.identifier)}
+				{#each tags ?? [] as tag (tag.identifier)}
 					<div
 						on:click={async () => {
 							if (await callback(tag)) {
