@@ -225,3 +225,18 @@ pub(crate) async fn get_tags_for_metric(
 
     Ok(de_duplicated)
 }
+
+pub(crate) async fn update_metric(
+    metric: Metric,
+    db: &Surreal<Client>,
+) -> surrealdb::Result<String> {
+    // Create a new metric with a random id
+    let _created: Record = db
+        .update(("metric", &metric.identifier))
+        .content(metric)
+        .await?;
+    match _created.id.id {
+        Id::String(id_str) => Ok(id_str),
+        _ => panic!("We don't do that here. We shall only use String IDs"),
+    }
+}

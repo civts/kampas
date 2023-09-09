@@ -135,4 +135,7 @@
 		justify-content: flex-start;
 		gap: 1rem;
 	}
+	li {
+		margin-bottom: 0.7rem;
+	}
 </style>

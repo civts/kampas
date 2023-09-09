@@ -5,7 +5,7 @@ use crate::{
         add_metric as add_metricl, associate_metric as associate_metricl,
         get_coverage_for_metric as get_coverage_for_metricc, get_metric as get_metricl,
         get_metrics as get_metricss, get_metrics_for_control as get_metrics_for_controll,
-        get_tags_for_metric as get_tags_for_metricc,
+        get_tags_for_metric as get_tags_for_metricc, update_metric as update_metricc,
     },
     models::{metric::Metric, role::Role, user::User},
 };
@@ -39,7 +39,7 @@ pub(crate) async fn add_metric(
             println!("Could not create new metric: {err:?}");
             status::Custom(
                 Status::InternalServerError,
-                "Internal Server Error".to_string(),
+                Status::InternalServerError.reason_lossy().to_string(),
             )
         }
     }
@@ -73,7 +73,7 @@ pub(crate) async fn associate_metric(
             println!("Could not associate metric: {err:?}");
             status::Custom(
                 Status::InternalServerError,
-                "Internal Server Error".to_string(),
+                Status::InternalServerError.reason_lossy().to_string(),
             )
         }
     }
@@ -97,7 +97,7 @@ pub(crate) async fn get_metrics(
             println!("Something went wrong getting the metrics: {}", err);
             status::Custom(
                 Status::InternalServerError,
-                "Internal Server Error".to_string(),
+                Status::InternalServerError.reason_lossy().to_string(),
             )
         }
     }
@@ -124,7 +124,7 @@ pub(crate) async fn get_metrics_for_control(
             println!("Something went wrong getting the metrics: {}", err);
             status::Custom(
                 Status::InternalServerError,
-                "Internal Server Error".to_string(),
+                Status::InternalServerError.reason_lossy().to_string(),
             )
         }
     }
@@ -148,7 +148,7 @@ pub(crate) async fn get_metric(
             println!("Something went wrong getting the metrics: {}", err);
             status::Custom(
                 Status::InternalServerError,
-                "Internal Server Error".to_string(),
+                Status::InternalServerError.reason_lossy().to_string(),
             )
         }
     }
@@ -179,7 +179,7 @@ pub(crate) async fn get_coverage_for_metric(
             );
             status::Custom(
                 Status::InternalServerError,
-                "Internal Server Error".to_string(),
+                Status::InternalServerError.reason_lossy().to_string(),
             )
         }
     }
@@ -206,7 +206,72 @@ pub(crate) async fn get_tags_for_metric(
             println!("Something went wrong getting the metric tags: {}", err);
             status::Custom(
                 Status::InternalServerError,
-                "Internal Server Error".to_string(),
+                Status::InternalServerError.reason_lossy().to_string(),
+            )
+        }
+    }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, FromForm)]
+#[serde(crate = "rocket::serde")]
+pub(crate) struct UpdateMetricFormData {
+    #[field(validate = len(3..30))]
+    pub(crate) title: Option<String>,
+    #[field(validate = len(3..300))]
+    pub(crate) description: Option<String>,
+    pub(crate) effort: Option<u8>,
+    pub(crate) progress: Option<u8>,
+}
+
+#[patch("/<metric_id>", data = "<form_data>")]
+pub(crate) async fn update_metric(
+    mut form_data: Form<UpdateMetricFormData>,
+    metric_id: String,
+    _r: EditMetricRoles,
+    db: &State<Surreal<Client>>,
+) -> status::Custom<String> {
+    let metric_res = get_metricl(db, metric_id.clone()).await;
+    match metric_res {
+        Ok(metric_opt) => match metric_opt {
+            Some(mut metric) => {
+                if let Some(d) = form_data.description.take() {
+                    metric.description = d;
+                }
+                if let Some(t) = form_data.title.take() {
+                    metric.title = t;
+                }
+                if let Some(e) = form_data.effort.take() {
+                    if e > 0 {
+                        metric.effort = e;
+                    }
+                }
+                if let Some(p) = form_data.progress.take() {
+                    if p > 0 && p <= 100 {
+                        metric.progress = p;
+                    }
+                }
+                let update_res = update_metricc(metric, db).await;
+                match update_res {
+                    Ok(_) => status::Custom(Status::Ok, format!("{metric_id}").to_string()),
+                    Err(err) => {
+                        println!("Could not update the metric {metric_id}: {err:?}");
+                        status::Custom(
+                            Status::InternalServerError,
+                            Status::InternalServerError.reason_lossy().to_string(),
+                        )
+                    }
+                }
+            }
+            None => status::Custom(
+                Status::NotFound,
+                Status::NotFound.reason_lossy().to_string(),
+            ),
+        },
+        Err(err) => {
+            println!("Could not get the metric to update: {err:?}");
+            status::Custom(
+                Status::InternalServerError,
+                Status::InternalServerError.reason_lossy().to_string(),
             )
         }
     }

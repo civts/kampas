@@ -1,12 +1,15 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
+	import { afterUpdate } from 'svelte';
 	import Tag from '../../../../components/tag.svelte';
 	import type { PageData, ActionData } from './$types';
 
 	export let data: PageData;
-	// export let form: ActionData;
+	export let form: ActionData;
 
 	$: metric = data.metric;
+
+	let edit_form_shown = false;
 </script>
 
 <head>
@@ -21,6 +24,57 @@
 			<li>Progress: {metric.progress}</li>
 			<li>Effort: {metric.effort}</li>
 		</ul>
+		<button
+			class="btn"
+			type="button"
+			on:click={(_) => {
+				edit_form_shown = !edit_form_shown;
+			}}
+		>
+			Edit
+		</button>
+		{#if edit_form_shown}
+			<form action="?/edit_metric" method="post">
+				<label for="title">Title</label>
+				<input type="text" name="title" id="title" placeholder="title" value={metric.title} />
+				<label for="description">Description</label>
+				<input
+					type="text"
+					name="description"
+					id="description"
+					placeholder="description"
+					value={metric.description}
+				/>
+				<label for="effort">Effort</label>
+				<input
+					type="number"
+					min="1"
+					name="effort"
+					id="effort"
+					placeholder="effort"
+					value={metric.effort}
+				/>
+				<label for="progress">Progress</label>
+				<input
+					type="number"
+					min="0"
+					max="100"
+					name="progress"
+					id="progress"
+					placeholder="progress"
+					value={metric.progress}
+				/>
+				<input hidden type="text" name="id" bind:value={metric.identifier} />
+
+				<button type="submit">Update</button>
+			</form>
+			{#if form?.success}
+				Metric updated successfully
+			{/if}
+			{#if form?.reason}
+				<p class="error">{form.reason}</p>
+			{/if}
+		{/if}
 	</section>
 	<section>
 		<h1>Associated Controls</h1>
@@ -50,5 +104,14 @@
 		justify-content: start;
 		gap: 1rem;
 		margin-top: 1rem;
+	}
+
+	button.btn {
+		background-color: var(--input-bg);
+		border: none;
+		color: var(--text-color);
+		border-radius: 0.5rem;
+		padding: 0.75rem 1rem;
+		margin-top: 0;
 	}
 </style>
