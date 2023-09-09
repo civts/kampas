@@ -1,3 +1,4 @@
 **/.direnv/
 **/target/
 sample_data/
+*.log
