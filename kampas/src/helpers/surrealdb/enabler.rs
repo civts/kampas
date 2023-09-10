@@ -16,10 +16,12 @@ pub(crate) async fn add_enabler(
         .create(("enabler", &enabler.identifier))
         .content(enabler)
         .await?;
-    match _created.id.id {
-        Id::String(id_str) => Ok(id_str),
+    let s = match _created.id.id {
+        Id::String(id_str) => id_str,
+        Id::Number(id) => id.to_string(),
         _ => panic!("We don't do that here. We shall only use String IDs"),
-    }
+    };
+    Ok(s)
 }
 
 pub(crate) async fn get_enablers(db: &Surreal<Client>) -> surrealdb::Result<Vec<Enabler>> {
@@ -138,10 +140,12 @@ pub(crate) async fn get_enabler_control_association(
     results.iter().for_each(|obj| {
         let key = match &obj.enabler.id {
             Id::String(str) => str.into(),
+            Id::Number(id) => id.to_string(),
             _ => panic!("A enabler's id must be a string"),
         };
         let value = match &obj.control.id {
             Id::String(str) => (str.into(), obj.coverage),
+            Id::Number(id) => (id.to_string(), obj.coverage),
             _ => panic!("A enabler's id must be a string"),
         };
         if let Some(prev_value) = result.get_mut(&key) {
@@ -183,7 +187,8 @@ pub(crate) async fn get_coverage_for_enabler(
         .take(0)?;
     Ok(HashMap::from_iter(res.iter().map(|r| {
         let id = match &r.control.id {
-            Id::String(s) => s,
+            Id::String(s) => s.clone(),
+            Id::Number(id) => id.to_string(),
             _ => panic!("We only use string ids for controls"),
         };
         (id.to_owned(), r.coverage)
@@ -240,6 +245,7 @@ pub(crate) async fn update_enabler(
         .await?;
     match _created.id.id {
         Id::String(id_str) => Ok(id_str),
+        Id::Number(id) => Ok(id.to_string()),
         _ => panic!("We don't do that here. We shall only use String IDs"),
     }
 }

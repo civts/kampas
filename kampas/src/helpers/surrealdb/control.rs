@@ -140,11 +140,13 @@ pub(crate) async fn get_enablers_for_control_count_batch(
         .take(0)?;
 
     let mut res = HashMap::<String, u64>::new();
-    controls.iter().for_each(|h| match &h.id.id {
-        Id::String(id_str) => {
-            res.insert(id_str.clone(), h.count);
-        }
-        _ => panic!("We don't do that here. We shall only use String IDs"),
+    controls.iter().for_each(|h| {
+        let id_str = match &h.id.id {
+            Id::String(id_str) => id_str.clone(),
+            Id::Number(id_numb) => id_numb.to_string(),
+            _ => panic!("We don't do that here. We shall only use String IDs"),
+        };
+        res.insert(id_str, h.count);
     });
 
     Ok(res)

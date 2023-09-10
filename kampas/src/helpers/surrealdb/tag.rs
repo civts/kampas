@@ -142,22 +142,21 @@ pub(crate) async fn get_tag_control_association(
 
     qres.iter().for_each(|r| {
         let tag_id = match &r.tag.id {
-            Id::String(id) => id,
+            Id::String(id) => id.clone(),
+            Id::Number(id) => id.to_string(),
             _ => panic!("Tag id was not a String"),
         };
         let control_id = match &r.control.id {
-            Id::String(id) => id,
+            Id::String(id) => id.clone(),
+            Id::Number(id) => id.to_string(),
             _ => panic!("Control id was not a String"),
         };
-        match res.get_mut(tag_id) {
+        match res.get_mut(&tag_id) {
             None => {
-                res.insert(
-                    (*tag_id).clone(),
-                    HashSet::from_iter(vec![(*control_id).clone()]),
-                );
+                res.insert(tag_id, HashSet::from_iter(vec![control_id]));
             }
             Some(set) => {
-                set.insert((*control_id).clone());
+                set.insert(control_id);
             }
         };
     });
@@ -200,7 +199,11 @@ pub(crate) async fn get_enabler_tag_ids_batch(
         fn extract_id(h: &Thing) -> String {
             match &h.id {
                 Id::String(id_str) => id_str.clone(),
-                _ => panic!("We don't do that here. We shall only use String IDs"),
+                Id::Number(number) => number.to_string(),
+                _ => {
+                    println!("{h:?} Has an id which is not a String");
+                    panic!("We don't do that here. We shall only use String IDs")
+                }
             }
         }
         let id = extract_id(&h.id);

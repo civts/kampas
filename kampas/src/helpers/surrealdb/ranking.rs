@@ -15,6 +15,7 @@ pub(crate) async fn add_ranking(
         .await?;
     match _created.id.id {
         Id::String(id_str) => Ok(id_str),
+        Id::Number(id) => Ok(id.to_string()),
         _ => panic!("We don't do that here. We shall only use String IDs"),
     }
 }
