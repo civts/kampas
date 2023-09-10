@@ -13,6 +13,23 @@
 
 body {
 	margin: 1em;
+	&::-webkit-scrollbar {
+		width: 13px;
+	}
+
+	&::-webkit-scrollbar-track {
+		background: var(--input-bg);
+	}
+
+	&::-webkit-scrollbar-thumb {
+		background-color: var(--bg1);
+		border-radius: 20px;
+		border: 1px solid var(--text-color);
+	}
+
+	&:hover::-webkit-scrollbar-thumb {
+		border: none;
+	}
 }
 
 button {
