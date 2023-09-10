@@ -17,10 +17,10 @@ execute_with_label() {
     (bash -c "$command" 2> >(sed "s/^/$color[$label]${colors['red']} &/" | sed 's/$/\x1b[0m &/' >&2) | sed "s/^/$color[$label]\x1b[0m &/"; echo -e "$color-------------$label done--------------\x1b[0m") &
 }
 
-execute_with_label "surreal" "cd kartrik; docker compose down; docker compose up" "${colors["yellow"]}"
+execute_with_label "surreal" "cd kampas; docker compose down; docker compose up" "${colors["yellow"]}"
 execute_with_label "redis" "cd frontend; docker compose down; docker compose up" "${colors["green"]}"
-execute_with_label "backend" "sleep 4; cargo watch -C kartrik -x run" "${colors["blue"]}"
-execute_with_label "frontend" "sleep 4; cd frontend; npm run dev" "${colors["magenta"]}"
+execute_with_label "backend" "sleep 4;source ./kampas/.env; cargo watch -C kampas -x run" "${colors["blue"]}"
+execute_with_label "frontend" "sleep 4; cd frontend; npm run dev" "${colors["magenta"]}" 
 
 kill_background_jobs() {
     echo "Terminating"

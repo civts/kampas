@@ -15,8 +15,8 @@
 
 <nav>
 	<a class="rowcenter" href="/">
-		<img src="/favicon.svg" alt="Kartik logo" />
-		<p class="kartik">Kartik</p>
+		<img src="/favicon.svg" alt="Kampas logo" />
+		<p class="kampas">Kampas</p>
 	</a>
 
 	<div>
@@ -85,7 +85,7 @@
 		padding: 0.75rem 1rem;
 		position: relative;
 	}
-	.kartik {
+	.kampas {
 		font-weight: 600;
 		letter-spacing: 0.01em;
 	}

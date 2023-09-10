@@ -160,7 +160,7 @@
 </script>
 
 <head>
-	<title>Kartik dashboard</title>
+	<title>Kampas dashboard</title>
 </head>
 
 {#if data?.user}

@@ -39,6 +39,19 @@
                 ms-vscode.hexeditor
                 svelte.svelte-vscode
                 ms-azuretools.vscode-docker
+              ] ++ pkgs.vscode-utils.extensionsFromVscodeMarketplace [
+                {
+                  name = "vsc-material-theme";
+                  publisher = "Equinusocio";
+                  version = "33.8.0";
+                  sha256 = "sha256-+I4AUwsrElT62XNvmuAC2iBfHfjNYY0bmAqzQvfwUYM=";
+                }
+                {
+                  name = "material-icon-theme";
+                  publisher = "PKief";
+                  version = "4.28.0";
+                  sha256 = "sha256-DO3dcJPk+TMhfb0IJ/eTB7nIKfyCXIiyhZFBpZjJzsM=";
+                }
               ];
             })
           ];

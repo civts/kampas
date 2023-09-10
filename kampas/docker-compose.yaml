@@ -7,7 +7,7 @@ services:
     volumes:
       - ./data:/data
     image: surrealdb/surrealdb:latest
-    command: start --log trace --user root --pass root file:/data/kartik.db
+    command: start --log trace --user root --pass root file:/data/kampas.db
   surrealist:
     container_name: surrealist
     image: 0xmimir/surrealist@sha256:ff79dcbee8aa6d1e3331ebdd923bae7169ad35ab4c3e163de5c2af8341056bfa
