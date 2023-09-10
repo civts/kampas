@@ -22,7 +22,7 @@
 	async function addTag(tag: TagI) {
 		if (filter_tags.findIndex((t) => t.identifier == tag.identifier) == -1) {
 			filter_tags.push(tag);
-			filter_tags = filter_tags;
+			filter_tags = filter_tags.sort((a, b) => a.name.localeCompare(b.name));
 		}
 		return true;
 	}

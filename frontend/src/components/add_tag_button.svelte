@@ -16,6 +16,7 @@
 	async function fetchTags() {
 		const response = await fetch('/api/tags');
 		tags = await response.json();
+		tags?.sort((a, b) => a.name.localeCompare(b.name));
 	}
 
 	afterUpdate(() => {

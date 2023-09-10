@@ -36,6 +36,7 @@
 		if (selected_tags.findIndex((t) => t.identifier == tag.identifier) == -1) {
 			selected_tags.push(tag);
 			selected_tags = selected_tags;
+			selected_tags.sort((a, b) => a.name.localeCompare(b.name));
 			updateEnablers();
 			updateControls();
 		}

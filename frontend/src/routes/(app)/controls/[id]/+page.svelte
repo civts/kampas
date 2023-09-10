@@ -23,7 +23,7 @@
 		if (response.ok) {
 			if (tags.findIndex((tag) => tagData.identifier == tag.identifier) == -1) {
 				tags.push(tagData);
-				tags = tags;
+				tags = tags.sort((a, b) => a.name.localeCompare(b.name));
 			}
 		}
 

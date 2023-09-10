@@ -16,7 +16,7 @@
 	async function addTag(tag: TagI): Promise<boolean> {
 		if (selected_tags.findIndex((t) => t.identifier == tag.identifier) == -1) {
 			selected_tags.push(tag);
-			selected_tags = selected_tags;
+			selected_tags = selected_tags.sort((a, b) => a.name.localeCompare(b.name));
 		}
 
 		return true;
@@ -50,13 +50,13 @@
 		<form action="?/add" method="post" use:enhance>
 			<label for="name">Ranking name</label>
 			<input type="text" name="name" id="name" placeholder="name" />
-			<label for="minimum_coverage" >Minimum coverage (for each control)</label>
+			<label for="minimum_coverage">Minimum coverage (for each control)</label>
 			<input
 				type="number"
 				min="1"
 				max="100"
 				name="minimum_coverage"
-				id="minimum_coverage" 
+				id="minimum_coverage"
 				bind:value={min_coverage}
 				placeholder="Mimimum coverage for each control"
 			/>

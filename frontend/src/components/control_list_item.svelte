@@ -1,12 +1,13 @@
 <script lang="ts">
 	import type { Control } from '$lib/models/bindings/Control';
 	import type { Tag as T } from '$lib/models/bindings/Tag';
-	import { afterUpdate, onMount } from 'svelte';
+	import { afterUpdate } from 'svelte';
 	import Tag from './tag.svelte';
 	import AddTagButton from './add_tag_button.svelte';
 
 	export let control: Control;
 	export let tags: T[] | undefined = undefined;
+	tags = tags?.sort((a, b) => a.name.localeCompare(b.name));
 
 	async function addTag(tagData: T) {
 		const response = await fetch('/api/tags/add_to_control', {
@@ -21,6 +22,7 @@
 			tags ??= [];
 			if (tags.findIndex((tag) => tagData.identifier == tag.identifier) == -1) {
 				tags.push(tagData);
+				tags.sort((a, b) => a.name.localeCompare(b.name));
 				tags = tags;
 			}
 		}
