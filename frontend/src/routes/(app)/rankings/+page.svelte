@@ -2,6 +2,7 @@
 	import type { PageData } from './$types';
 
 	export let data: PageData;
+	data.rankings?.sort((a, b) => a.name.localeCompare(b.name));
 </script>
 
 <head>

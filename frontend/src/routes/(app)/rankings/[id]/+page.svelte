@@ -47,11 +47,13 @@
 	};
 
 	$: filtered_measures =
-		data.measures.filter((t) => filter_by_tag(t, data.measures_tags, filter_tags, any_tag)) ?? [];
+		data.measures
+			.filter((t) => filter_by_tag(t, data.measures_tags, filter_tags, any_tag))
+			.sort((a, b) => a.title.localeCompare(b.title)) ?? [];
 
-	$: filtered_controls = data.controls.filter((c) =>
-		filter_by_tag(c, data.control_tags, filter_tags, any_tag)
-	);
+	$: filtered_controls = data.controls
+		.filter((c) => filter_by_tag(c, data.control_tags, filter_tags, any_tag))
+		.sort((a, b) => a.title.localeCompare(b.title));
 
 	$: average_progress =
 		filtered_measures.reduce((prev, m) => {
