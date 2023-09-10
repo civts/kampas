@@ -189,11 +189,11 @@ struct _Helper3 {
     tags: Vec<Thing>,
 }
 
-pub(crate) async fn get_metric_tag_ids_batch(
+pub(crate) async fn get_enabler_tag_ids_batch(
     db: &Surreal<Client>,
 ) -> surrealdb::Result<HashMap<String, Vec<String>>> {
     let qres: Vec<_Helper3> = db
-        .query("SELECT id, array::distinct(->measures.out<-tags.in) as tags FROM metric")
+        .query("SELECT id, array::distinct(->satisfies.out<-tags.in) as tags FROM enabler")
         .await?
         .take(0)?;
     let res = HashMap::from_iter(qres.iter().map(|h| {

@@ -1,5 +1,5 @@
 pub(crate) mod control;
-pub(crate) mod metric;
+pub(crate) mod enabler;
 pub(crate) mod ranking;
 pub(crate) mod role;
 pub(crate) mod tag;

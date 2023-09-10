@@ -1,21 +1,21 @@
 <script lang="ts">
-	import type { Metric } from '$lib/models/bindings/Metric';
+	import type { Enabler } from '$lib/models/bindings/Enabler';
 	import { onMount } from 'svelte';
 
 	/**
-	 * The function to run when a metric is selected.
+	 * The function to run when a enabler is selected.
 	 * It shall return true to indicate that the overlay can be closed.
 	 * False to leave it open.
 	 */
-	export let on_select: (m: Metric, coverage: number) => Promise<boolean>;
+	export let on_select: (m: Enabler, coverage: number) => Promise<boolean>;
 
 	let showOverlay = false;
-	let metrics: Metric[] = [];
+	let enablers: Enabler[] = [];
 
-	async function fetchMetrics() {
-		const response = await fetch('/api/metrics');
-		metrics = await response.json();
-		metrics.sort((a, b) => {
+	async function fetchEnablers() {
+		const response = await fetch('/api/enablers');
+		enablers = await response.json();
+		enablers.sort((a, b) => {
 			if (a.title.toLowerCase() > b.title.toLowerCase()) {
 				return 1;
 			}
@@ -23,16 +23,16 @@
 		});
 	}
 
-	onMount(fetchMetrics);
+	onMount(fetchEnablers);
 </script>
 
-<button type="button" on:click={() => (showOverlay = true)}>Add metric</button>
+<button type="button" on:click={() => (showOverlay = true)}>Add enabler</button>
 
 {#if showOverlay}
 	<div class="overlay" on:click={() => (showOverlay = false)}>
 		<div class="overlay-content" on:click={(e) => e.stopPropagation()}>
 			<div class="grid">
-				{#each metrics as metric (metric.identifier)}
+				{#each enablers as enabler (enabler.identifier)}
 					<div
 						on:click={async () => {
 							let res = prompt('what is the coverage?');
@@ -42,7 +42,7 @@
 								}
 								let cov = Number.parseInt(res);
 								if (cov > 0 && cov <= 100) {
-									if (await on_select(metric, cov)) {
+									if (await on_select(enabler, cov)) {
 										showOverlay = false;
 										return;
 									}
@@ -52,11 +52,11 @@
 							}
 						}}
 					>
-						{metric.title}
+						{enabler.title}
 					</div>
 				{/each}
 			</div>
-			<p>You can create a new metric <a href="/new_metric">here</a></p>
+			<p>You can create a new enabler <a href="/new_enabler">here</a></p>
 		</div>
 	</div>
 {/if}
@@ -76,19 +76,24 @@
 	}
 
 	.overlay-content {
+		position: relative;
+		margin: auto;
+		max-width: 80%;
+		max-height: 80%;
 		border-radius: 0.5rem;
 		border-color: var(--text-color);
 		border-width: 1px;
 		border-style: solid;
 		background-color: var(--input-bg);
 		padding: 2rem 3rem;
+		overflow-y: auto;
 	}
 
 	.grid {
 		display: grid;
 		grid-template-columns: repeat(4, 1fr);
 		gap: 1rem;
-		justify-items: center;
+		justify-items: start;
 		> * {
 			cursor: pointer;
 		}

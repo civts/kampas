@@ -21,7 +21,7 @@
 
 	<div>
 		<a class="addcontrol" href="/new_control">Add control</a>
-		<a class="addcontrol" href="/new_metric">Add metric</a>
+		<a class="addcontrol" href="/new_enabler">Add enabler</a>
 		<a class="addcontrol" href="/new_ranking">Create ranking</a>
 	</div>
 

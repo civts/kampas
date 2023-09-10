@@ -1,7 +1,7 @@
 <script lang="ts">
 	import type { Tag as TagI } from '$lib/models/bindings/Tag';
 	import { onMount } from 'svelte';
-	import AddMetricButton from '../../../../components/add_metric_button.svelte';
+	import AddEnablerButton from '../../../../components/add_enabler_button.svelte';
 	import AddTagButton from '../../../../components/add_tag_button.svelte';
 	import Tag from '../../../../components/tag.svelte';
 	import type { PageData } from './$types';
@@ -88,35 +88,35 @@
 		/>
 	</div>
 	<section>
-		<h1>Associated Metrics</h1>
+		<h1>Associated Enablers</h1>
 		<ul>
-			{#each data.metrics as metric}
+			{#each data.enablers as enabler}
 				<li>
-					<a href="/metrics/{metric.identifier}">
-						<span>{metric.title} (progress: {metric.progress}%)</span>
+					<a href="/enablers/{enabler.identifier}">
+						<span>{enabler.title} (progress: {enabler.progress}%)</span>
 					</a>
 				</li>
 			{/each}
-			<AddMetricButton
+			<AddEnablerButton
 				on_select={async (m, coverage) => {
 					if (control != undefined) {
-						const response = await fetch('/api/metrics/associate', {
+						const response = await fetch('/api/enablers/associate', {
 							method: 'POST',
 							headers: { 'Content-Type': 'application/json' },
 							body: JSON.stringify({
-								metric_id: m.identifier,
+								enabler_id: m.identifier,
 								control_id: control.identifier,
 								coverage: coverage
 							})
 						});
 
 						if (response.ok) {
-							if (data.metrics.findIndex((metr) => metr.identifier == m.identifier) == -1) {
-								data.metrics.push(m);
-								data.metrics = data.metrics;
+							if (data.enablers.findIndex((metr) => metr.identifier == m.identifier) == -1) {
+								data.enablers.push(m);
+								data.enablers = data.enablers;
 							}
 						} else {
-							alert('Associating the metric to the control failed. Are they already associated?');
+							alert('Associating the enabler to the control failed. Are they already associated?');
 						}
 						return response.ok;
 					} else {

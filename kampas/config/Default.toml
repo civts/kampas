@@ -1,5 +1,5 @@
 surreal_url = "127.0.0.1:8002"
 surreal_user = "root"
 surreal_password = "root"
-surreal_namespace = "test"
-surreal_database = "test"
+surreal_namespace = "kampas"
+surreal_database = "demo_1"

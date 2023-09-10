@@ -114,23 +114,23 @@ pub(crate) async fn get_tags_batch(
     }
 }
 
-#[get("/get_metric_tag_ids_batch")]
-pub(crate) async fn get_metric_tag_ids_batch(
+#[get("/get_enabler_tag_ids_batch")]
+pub(crate) async fn get_enabler_tag_ids_batch(
     user: User,
     _required_roles: GetTagsRole,
     db: &State<Surreal<Client>>,
 ) -> status::Custom<String> {
-    let tags_res = surrealdb::tag::get_metric_tag_ids_batch(db).await;
-    println!("{} is requesting the metric tags (batch)", user.username);
+    let tags_res = surrealdb::tag::get_enabler_tag_ids_batch(db).await;
+    println!("{} is requesting the enabler tags (batch)", user.username);
     match tags_res {
-        Ok(metric_to_tags) => status::Custom(
+        Ok(enabler_to_tags) => status::Custom(
             Status::Ok,
-            serde_json::to_string(&metric_to_tags)
-                .expect("can serialize the metric tags (batch) completion to JSON"),
+            serde_json::to_string(&enabler_to_tags)
+                .expect("can serialize the enabler tags (batch) completion to JSON"),
         ),
         Err(err) => {
             println!(
-                "Something went wrong getting the metric tags (batch): {}",
+                "Something went wrong getting the enabler tags (batch): {}",
                 err
             );
             status::Custom(

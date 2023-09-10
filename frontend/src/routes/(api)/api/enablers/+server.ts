@@ -2,9 +2,9 @@ import { BACKEND_URL } from '$env/static/private';
 import { getSessionFromCookiesOrCreate } from '$lib/session_cookies';
 import type { RequestHandler } from '@sveltejs/kit';
 
-const getMetrics: RequestHandler = async ({ cookies }) => {
+const getEnablers: RequestHandler = async ({ cookies }) => {
 	const session = await getSessionFromCookiesOrCreate(cookies);
-	const response = await fetch(`${BACKEND_URL}/api/v1/metrics`, {
+	const response = await fetch(`${BACKEND_URL}/api/v1/enablers`, {
 		headers: { Authorization: `Bearer ${session.auth_token}` }
 	});
 	if (response.ok) {
@@ -15,4 +15,4 @@ const getMetrics: RequestHandler = async ({ cookies }) => {
 	}
 };
 
-export const GET = getMetrics;
+export const GET = getEnablers;

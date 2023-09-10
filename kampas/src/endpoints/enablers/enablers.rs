@@ -1,14 +1,14 @@
 use crate::{
     endpoints::tags::tags::GetTagsRole,
     generate_endpoint_roles,
-    helpers::surrealdb::metric::{
-        add_metric as add_metricl, associate_metric as associate_metricl,
-        get_coverage_for_metric as get_coverage_for_metricc, get_metric as get_metricl,
-        get_metrics as get_metricss, get_metrics_for_control as get_metrics_for_controll,
+    helpers::surrealdb::enabler::{
+        add_enabler as add_enablerl, associate_enabler as associate_enablerl,
+        get_coverage_for_enabler as get_coverage_for_enablerc, get_enabler as get_enablerl,
+        get_enablers as get_enablerss, get_enablers_for_control as get_enablers_for_controll,
         get_number_controls_batch as get_number_controls_batchh,
-        get_tags_for_metric as get_tags_for_metricc, update_metric as update_metricc,
+        get_tags_for_enabler as get_tags_for_enablerc, update_enabler as update_enablerc,
     },
-    models::{metric::Metric, role::Role, user::User},
+    models::{enabler::Enabler, role::Role, user::User},
 };
 use rocket::request::{FromRequest, Outcome, Request};
 use rocket::{form::Form, http::Status, response::status, serde::json::serde_json, State};
@@ -18,7 +18,7 @@ use surrealdb::{engine::remote::ws::Client, Surreal};
 
 #[derive(Debug, Clone, Serialize, Deserialize, FromForm)]
 #[serde(crate = "rocket::serde")]
-pub(crate) struct MetricFormData {
+pub(crate) struct EnablerFormData {
     #[field(validate = len(3..30))]
     pub(crate) title: String,
     #[field(validate = len(3..300))]
@@ -26,18 +26,18 @@ pub(crate) struct MetricFormData {
     pub(crate) effort: Option<u8>,
 }
 
-generate_endpoint_roles!(EditMetricRoles, { Role::CreateMetrics });
+generate_endpoint_roles!(EditEnablerRoles, { Role::CreateEnablers });
 #[post("/", data = "<form_data>")]
-pub(crate) async fn add_metric(
-    form_data: Form<MetricFormData>,
-    _r: EditMetricRoles,
+pub(crate) async fn add_enabler(
+    form_data: Form<EnablerFormData>,
+    _r: EditEnablerRoles,
     db: &State<Surreal<Client>>,
 ) -> status::Custom<String> {
-    let metric = Metric::new(&form_data.title, &form_data.description, form_data.effort);
-    match add_metricl(metric.clone(), db).await {
+    let enabler = Enabler::new(&form_data.title, &form_data.description, form_data.effort);
+    match add_enablerl(enabler.clone(), db).await {
         Ok(id) => status::Custom(Status::Ok, format!("{id}").to_string()),
         Err(err) => {
-            println!("Could not create new metric: {err:?}");
+            println!("Could not create new enabler: {err:?}");
             status::Custom(
                 Status::InternalServerError,
                 Status::InternalServerError.reason_lossy().to_string(),
@@ -48,30 +48,30 @@ pub(crate) async fn add_metric(
 
 #[derive(Debug, Clone, Serialize, Deserialize, FromForm)]
 #[serde(crate = "rocket::serde")]
-pub(crate) struct AssociateMetricFormData {
-    pub(crate) metric_id: String,
+pub(crate) struct AssociateEnablerFormData {
+    pub(crate) enabler_id: String,
     pub(crate) control_id: String,
     #[field(validate = range(1..101), default = 100)]
     pub(crate) coverage: u8,
 }
-generate_endpoint_roles!(AssociateMetricRoles, { Role::AssociateMetrics });
+generate_endpoint_roles!(AssociateEnablerRoles, { Role::AssociateEnablers });
 #[post("/associate", data = "<form_data>")]
-pub(crate) async fn associate_metric(
-    form_data: Form<AssociateMetricFormData>,
-    _r: AssociateMetricRoles,
+pub(crate) async fn associate_enabler(
+    form_data: Form<AssociateEnablerFormData>,
+    _r: AssociateEnablerRoles,
     db: &State<Surreal<Client>>,
 ) -> status::Custom<String> {
-    let associate_res = associate_metricl(
-        &form_data.metric_id,
+    let associate_res = associate_enablerl(
+        &form_data.enabler_id,
         &form_data.control_id,
         form_data.coverage,
         db,
     )
     .await;
     match associate_res {
-        Ok(_) => status::Custom(Status::Ok, format!("Ok, metric associated").to_string()),
+        Ok(_) => status::Custom(Status::Ok, format!("Ok, enabler associated").to_string()),
         Err(err) => {
-            println!("Could not associate metric: {err:?}");
+            println!("Could not associate enabler: {err:?}");
             status::Custom(
                 Status::InternalServerError,
                 Status::InternalServerError.reason_lossy().to_string(),
@@ -80,22 +80,22 @@ pub(crate) async fn associate_metric(
     }
 }
 
-generate_endpoint_roles!(GetMetricsRole, { Role::GetMetrics });
+generate_endpoint_roles!(GetEnablersRole, { Role::GetEnablers });
 #[get("/")]
-pub(crate) async fn get_metrics(
+pub(crate) async fn get_enablers(
     user: User,
-    _required_roles: GetMetricsRole,
+    _required_roles: GetEnablersRole,
     db: &State<Surreal<Client>>,
 ) -> status::Custom<String> {
-    let metrics_res = get_metricss(db).await;
-    println!("{} is requesting the metrics", user.username);
-    match metrics_res {
-        Ok(metrics) => status::Custom(
+    let enablers_res = get_enablerss(db).await;
+    println!("{} is requesting the enablers", user.username);
+    match enablers_res {
+        Ok(enablers) => status::Custom(
             Status::Ok,
-            serde_json::to_string(&metrics).expect("can serialize the metrics to JSON"),
+            serde_json::to_string(&enablers).expect("can serialize the enablers to JSON"),
         ),
         Err(err) => {
-            println!("Something went wrong getting the metrics: {}", err);
+            println!("Something went wrong getting the enablers: {}", err);
             status::Custom(
                 Status::InternalServerError,
                 Status::InternalServerError.reason_lossy().to_string(),
@@ -105,24 +105,24 @@ pub(crate) async fn get_metrics(
 }
 
 #[get("/?<control_id>")]
-pub(crate) async fn get_metrics_for_control(
+pub(crate) async fn get_enablers_for_control(
     user: User,
     control_id: &str,
-    _required_roles: GetMetricsRole,
+    _required_roles: GetEnablersRole,
     db: &State<Surreal<Client>>,
 ) -> status::Custom<String> {
-    let metrics_res = get_metrics_for_controll(control_id, db).await;
+    let enablers_res = get_enablers_for_controll(control_id, db).await;
     println!(
-        "{} is requesting the metrics for control {control_id}",
+        "{} is requesting the enablers for control {control_id}",
         user.username
     );
-    match metrics_res {
-        Ok(metrics) => status::Custom(
+    match enablers_res {
+        Ok(enablers) => status::Custom(
             Status::Ok,
-            serde_json::to_string(&metrics).expect("can serialize the metrics to JSON"),
+            serde_json::to_string(&enablers).expect("can serialize the enablers to JSON"),
         ),
         Err(err) => {
-            println!("Something went wrong getting the metrics: {}", err);
+            println!("Something went wrong getting the enablers: {}", err);
             status::Custom(
                 Status::InternalServerError,
                 Status::InternalServerError.reason_lossy().to_string(),
@@ -131,22 +131,22 @@ pub(crate) async fn get_metrics_for_control(
     }
 }
 
-#[get("/<metric_id>")]
-pub(crate) async fn get_metric(
+#[get("/<enabler_id>")]
+pub(crate) async fn get_enabler(
     user: User,
-    metric_id: String,
-    _required_roles: GetMetricsRole,
+    enabler_id: String,
+    _required_roles: GetEnablersRole,
     db: &State<Surreal<Client>>,
 ) -> status::Custom<String> {
-    println!("{} is requesting the metric {metric_id}", user.username);
-    let metrics_res = get_metricl(db, metric_id).await;
-    match metrics_res {
-        Ok(metric) => status::Custom(
+    println!("{} is requesting the enabler {enabler_id}", user.username);
+    let enablers_res = get_enablerl(db, enabler_id).await;
+    match enablers_res {
+        Ok(enabler) => status::Custom(
             Status::Ok,
-            serde_json::to_string(&metric).expect("can serialize the metric to JSON"),
+            serde_json::to_string(&enabler).expect("can serialize the enabler to JSON"),
         ),
         Err(err) => {
-            println!("Something went wrong getting the metrics: {}", err);
+            println!("Something went wrong getting the enablers: {}", err);
             status::Custom(
                 Status::InternalServerError,
                 Status::InternalServerError.reason_lossy().to_string(),
@@ -155,27 +155,27 @@ pub(crate) async fn get_metric(
     }
 }
 
-#[get("/coverage_for_metric?<metric_id>")]
-pub(crate) async fn get_coverage_for_metric(
+#[get("/coverage_for_enabler?<enabler_id>")]
+pub(crate) async fn get_coverage_for_enabler(
     user: User,
-    metric_id: String,
-    _required_roles: GetMetricsRole,
+    enabler_id: String,
+    _required_roles: GetEnablersRole,
     db: &State<Surreal<Client>>,
 ) -> status::Custom<String> {
     println!(
-        "{} is requesting the coverage info for metric {metric_id}",
+        "{} is requesting the coverage info for enabler {enabler_id}",
         user.username
     );
-    let metrics_res = get_coverage_for_metricc(&metric_id, db).await;
-    match metrics_res {
-        Ok(metric) => {
-            let a = serde_json::to_string(&metric)
-                .expect("can serialize the metric coverage info to JSON");
+    let enablers_res = get_coverage_for_enablerc(&enabler_id, db).await;
+    match enablers_res {
+        Ok(enabler) => {
+            let a = serde_json::to_string(&enabler)
+                .expect("can serialize the enabler coverage info to JSON");
             status::Custom(Status::Ok, a)
         }
         Err(err) => {
             println!(
-                "Something went wrong getting the metric coverage info: {}",
+                "Something went wrong getting the enabler coverage info: {}",
                 err
             );
             status::Custom(
@@ -186,25 +186,25 @@ pub(crate) async fn get_coverage_for_metric(
     }
 }
 
-#[get("/tags_for_metric?<metric_id>")]
-pub(crate) async fn get_tags_for_metric(
+#[get("/tags_for_enabler?<enabler_id>")]
+pub(crate) async fn get_tags_for_enabler(
     user: User,
-    metric_id: String,
+    enabler_id: String,
     _required_roles: GetTagsRole,
     db: &State<Surreal<Client>>,
 ) -> status::Custom<String> {
     println!(
-        "{} is requesting the tags for metric {metric_id}",
+        "{} is requesting the tags for enabler {enabler_id}",
         user.username
     );
-    let metrics_res = get_tags_for_metricc(&metric_id, db).await;
-    match metrics_res {
+    let enablers_res = get_tags_for_enablerc(&enabler_id, db).await;
+    match enablers_res {
         Ok(tags) => {
-            let a = serde_json::to_string(&tags).expect("can serialize the metric tags to JSON");
+            let a = serde_json::to_string(&tags).expect("can serialize the enabler tags to JSON");
             status::Custom(Status::Ok, a)
         }
         Err(err) => {
-            println!("Something went wrong getting the metric tags: {}", err);
+            println!("Something went wrong getting the enabler tags: {}", err);
             status::Custom(
                 Status::InternalServerError,
                 Status::InternalServerError.reason_lossy().to_string(),
@@ -215,7 +215,7 @@ pub(crate) async fn get_tags_for_metric(
 
 #[derive(Debug, Clone, Serialize, Deserialize, FromForm)]
 #[serde(crate = "rocket::serde")]
-pub(crate) struct UpdateMetricFormData {
+pub(crate) struct UpdateEnablerFormData {
     #[field(validate = len(3..30))]
     pub(crate) title: Option<String>,
     #[field(validate = len(3..300))]
@@ -224,38 +224,38 @@ pub(crate) struct UpdateMetricFormData {
     pub(crate) progress: Option<u8>,
 }
 
-#[patch("/<metric_id>", data = "<form_data>")]
-pub(crate) async fn update_metric(
-    mut form_data: Form<UpdateMetricFormData>,
-    metric_id: String,
-    _r: EditMetricRoles,
+#[patch("/<enabler_id>", data = "<form_data>")]
+pub(crate) async fn update_enabler(
+    mut form_data: Form<UpdateEnablerFormData>,
+    enabler_id: String,
+    _r: EditEnablerRoles,
     db: &State<Surreal<Client>>,
 ) -> status::Custom<String> {
-    let metric_res = get_metricl(db, metric_id.clone()).await;
-    match metric_res {
-        Ok(metric_opt) => match metric_opt {
-            Some(mut metric) => {
+    let enabler_res = get_enablerl(db, enabler_id.clone()).await;
+    match enabler_res {
+        Ok(enabler_opt) => match enabler_opt {
+            Some(mut enabler) => {
                 if let Some(d) = form_data.description.take() {
-                    metric.description = d;
+                    enabler.description = d;
                 }
                 if let Some(t) = form_data.title.take() {
-                    metric.title = t;
+                    enabler.title = t;
                 }
                 if let Some(e) = form_data.effort.take() {
                     if e > 0 {
-                        metric.effort = e;
+                        enabler.effort = e;
                     }
                 }
                 if let Some(p) = form_data.progress.take() {
                     if p > 0 && p <= 100 {
-                        metric.progress = p;
+                        enabler.progress = p;
                     }
                 }
-                let update_res = update_metricc(metric, db).await;
+                let update_res = update_enablerc(enabler, db).await;
                 match update_res {
-                    Ok(_) => status::Custom(Status::Ok, format!("{metric_id}").to_string()),
+                    Ok(_) => status::Custom(Status::Ok, format!("{enabler_id}").to_string()),
                     Err(err) => {
-                        println!("Could not update the metric {metric_id}: {err:?}");
+                        println!("Could not update the enabler {enabler_id}: {err:?}");
                         status::Custom(
                             Status::InternalServerError,
                             Status::InternalServerError.reason_lossy().to_string(),
@@ -269,7 +269,7 @@ pub(crate) async fn update_metric(
             ),
         },
         Err(err) => {
-            println!("Could not get the metric to update: {err:?}");
+            println!("Could not get the enabler to update: {err:?}");
             status::Custom(
                 Status::InternalServerError,
                 Status::InternalServerError.reason_lossy().to_string(),
@@ -281,7 +281,7 @@ pub(crate) async fn update_metric(
 #[post("/get_number_controls_batch", data = "<req_data>")]
 pub(crate) async fn get_number_controls_batch(
     user: User,
-    _required_roles: GetMetricsRole,
+    _required_roles: GetEnablersRole,
     req_data: String,
     db: &State<Surreal<Client>>,
 ) -> status::Custom<String> {
@@ -290,18 +290,19 @@ pub(crate) async fn get_number_controls_batch(
         Ok(ids) => {
             let progress_res = get_number_controls_batchh(db, ids).await;
             println!(
-                "{} is requesting the controls associated to metrics (batch)",
+                "{} is requesting the controls associated to enablers (batch)",
                 user.username
             );
             match progress_res {
-                Ok(metrics) => status::Custom(
+                Ok(enablers) => status::Custom(
                     Status::Ok,
-                    serde_json::to_string(&metrics)
-                        .expect("can serialize the controls associated to metrics (batch) to JSON"),
+                    serde_json::to_string(&enablers).expect(
+                        "can serialize the controls associated to enablers (batch) to JSON",
+                    ),
                 ),
                 Err(err) => {
                     println!(
-                "Something went wrong getting the controls associated to metrics (batch): {}",
+                "Something went wrong getting the controls associated to enablers (batch): {}",
                 err
             );
                     status::Custom(

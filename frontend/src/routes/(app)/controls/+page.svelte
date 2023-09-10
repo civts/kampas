@@ -42,6 +42,7 @@
 		} else {
 			controls = data.controls;
 		}
+		controls = controls.sort((a, b) => a.title.localeCompare(b.title));
 	});
 </script>
 
@@ -66,7 +67,7 @@
 				<ControlListItem {control} tags={data.tags.get(control.identifier)} />
 			</li>
 		{:else}
-			<p>loading...</p>
+			<p>Nothing to show, try filtering with different tags</p>
 		{/each}
 	</ol>
 </section>

@@ -8,18 +8,20 @@ use endpoints::{
     controls::{
         controls::{
             add_control, get_control, get_control_completion, get_control_completion_b,
-            get_controls, get_controls_for_metric, get_metrics_for_control_count_batch,
+            get_controls, get_controls_for_enabler, get_enablers_for_control_count_batch,
         },
         upload::upload,
     },
-    metrics::metrics::{
-        add_metric, associate_metric, get_coverage_for_metric, get_metric, get_metrics,
-        get_metrics_for_control, get_number_controls_batch, get_tags_for_metric, update_metric,
+    enablers::enablers::{
+        add_enabler, associate_enabler, get_coverage_for_enabler, get_enabler, get_enablers,
+        get_enablers_for_control, get_number_controls_batch, get_tags_for_enabler, update_enabler,
     },
     rankings::ranking::{get_ranking, get_rankings, new_ranking},
     tags::{
         tag_control::{add_tag_to_control, remove_tag_from_control},
-        tags::{add_tag, get_metric_tag_ids_batch, get_tags, get_tags_batch, get_tags_for_control},
+        tags::{
+            add_tag, get_enabler_tag_ids_batch, get_tags, get_tags_batch, get_tags_for_control,
+        },
     },
 };
 use helpers::{cors::CORS, surrealdb::connection::get_client};
@@ -40,10 +42,10 @@ async fn rocket() -> _ {
                 get_controls,
                 upload,
                 get_control,
-                get_controls_for_metric,
+                get_controls_for_enabler,
                 get_control_completion,
                 get_control_completion_b,
-                get_metrics_for_control_count_batch
+                get_enablers_for_control_count_batch
             ],
         )
         .mount(
@@ -55,20 +57,20 @@ async fn rocket() -> _ {
                 get_tags_for_control,
                 add_tag_to_control,
                 remove_tag_from_control,
-                get_metric_tag_ids_batch
+                get_enabler_tag_ids_batch
             ],
         )
         .mount(
-            "/api/v1/metrics",
+            "/api/v1/enablers",
             routes![
-                add_metric,
-                update_metric,
-                get_metrics,
-                get_metric,
-                get_metrics_for_control,
-                get_coverage_for_metric,
-                associate_metric,
-                get_tags_for_metric,
+                add_enabler,
+                update_enabler,
+                get_enablers,
+                get_enabler,
+                get_enablers_for_control,
+                get_coverage_for_enabler,
+                associate_enabler,
+                get_tags_for_enabler,
                 get_number_controls_batch
             ],
         )

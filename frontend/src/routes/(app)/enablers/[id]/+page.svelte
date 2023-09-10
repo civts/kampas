@@ -1,28 +1,26 @@
 <script lang="ts">
-	import { enhance } from '$app/forms';
-	import { afterUpdate } from 'svelte';
 	import Tag from '../../../../components/tag.svelte';
 	import type { PageData, ActionData } from './$types';
 
 	export let data: PageData;
 	export let form: ActionData;
 
-	$: metric = data.metric;
+	$: enabler = data.enabler;
 
 	let edit_form_shown = false;
 </script>
 
 <head>
-	<title>{metric?.title || 'Metric details'}</title>
+	<title>{enabler?.title || 'Enabler details'}</title>
 </head>
 
-{#if metric}
+{#if enabler}
 	<section>
-		<h1>{metric.title}</h1>
-		<p>{metric.description}</p>
+		<h1>{enabler.title}</h1>
+		<p>{enabler.description}</p>
 		<ul>
-			<li>Progress: {metric.progress}</li>
-			<li>Effort: {metric.effort}</li>
+			<li>Progress: {enabler.progress}</li>
+			<li>Effort: {enabler.effort}</li>
 		</ul>
 		<button
 			class="btn"
@@ -34,16 +32,16 @@
 			Edit
 		</button>
 		{#if edit_form_shown}
-			<form action="?/edit_metric" method="post">
+			<form action="?/edit_enabler" method="post">
 				<label for="title">Title</label>
-				<input type="text" name="title" id="title" placeholder="title" value={metric.title} />
+				<input type="text" name="title" id="title" placeholder="title" value={enabler.title} />
 				<label for="description">Description</label>
 				<input
 					type="text"
 					name="description"
 					id="description"
 					placeholder="description"
-					value={metric.description}
+					value={enabler.description}
 				/>
 				<label for="effort">Effort</label>
 				<input
@@ -52,7 +50,7 @@
 					name="effort"
 					id="effort"
 					placeholder="effort"
-					value={metric.effort}
+					value={enabler.effort}
 				/>
 				<label for="progress">Progress</label>
 				<input
@@ -62,14 +60,14 @@
 					name="progress"
 					id="progress"
 					placeholder="progress"
-					value={metric.progress}
+					value={enabler.progress}
 				/>
-				<input hidden type="text" name="id" bind:value={metric.identifier} />
+				<input hidden type="text" name="id" bind:value={enabler.identifier} />
 
 				<button type="submit">Update</button>
 			</form>
 			{#if form?.success}
-				Metric updated successfully
+				Enabler updated successfully
 			{/if}
 			{#if form?.reason}
 				<p class="error">{form.reason}</p>
@@ -96,7 +94,7 @@
 		</div>
 	</section>
 {:else}
-	Loading metric data
+	Loading enabler data
 {/if}
 
 <style lang="scss">

@@ -6,7 +6,7 @@
 </script>
 
 <section>
-	<h1>Add metric</h1>
+	<h1>Add enabler</h1>
 	<form action="?/add" method="post" use:enhance>
 		{#if form?.title_error}
 			<p class="error">{form.title_error}</p>
@@ -26,10 +26,10 @@
 
 		<button type="submit">Add</button>
 		{#if form?.success}
-			<p>Metric added successfully</p>
+			<p>Enabler added successfully</p>
 		{/if}
 		{#if form?.reason}
-			<p class="error">Adding the metric failed: {form.reason}</p>
+			<p class="error">Adding the enabler failed: {form.reason}</p>
 		{/if}
 	</form>
 </section>

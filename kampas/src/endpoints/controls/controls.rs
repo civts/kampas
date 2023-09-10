@@ -3,8 +3,8 @@ use crate::{
     helpers::surrealdb::control::{
         add_control as add_controll, get_control as get_controll,
         get_control_completion as get_control_completionn, get_control_completion_batch,
-        get_controls as get_controlss, get_controls_for_metric as get_controls_for_metricc,
-        get_metrics_for_control_count_batch as get_metrics_for_control_count_batchh,
+        get_controls as get_controlss, get_controls_for_enabler as get_controls_for_enablerc,
+        get_enablers_for_control_count_batch as get_enablers_for_control_count_batchh,
     },
     models::{control::Control, role::Role, user::User},
 };
@@ -92,14 +92,14 @@ pub(crate) async fn get_control(
     }
 }
 
-#[get("/?<metric_id>")]
-pub(crate) async fn get_controls_for_metric(
+#[get("/?<enabler_id>")]
+pub(crate) async fn get_controls_for_enabler(
     user: User,
-    metric_id: &str,
+    enabler_id: &str,
     _required_roles: GetControlsRole,
     db: &State<Surreal<Client>>,
 ) -> status::Custom<String> {
-    let controls_res = get_controls_for_metricc(metric_id, db).await;
+    let controls_res = get_controls_for_enablerc(enabler_id, db).await;
     println!("{} is requesting the controls", user.username);
     match controls_res {
         Ok(controls) => status::Custom(
@@ -174,26 +174,26 @@ pub(crate) async fn get_control_completion_b(
     }
 }
 
-#[get("/get_metrics_count_batch")]
-pub(crate) async fn get_metrics_for_control_count_batch(
+#[get("/get_enablers_count_batch")]
+pub(crate) async fn get_enablers_for_control_count_batch(
     user: User,
     _required_roles: GetControlsRole,
     db: &State<Surreal<Client>>,
 ) -> status::Custom<String> {
     println!(
-        "{} is requesting the number of metrics associated to controls (batch)",
+        "{} is requesting the number of enablers associated to controls (batch)",
         user.username
     );
-    let controls_res = get_metrics_for_control_count_batchh(db).await;
+    let controls_res = get_enablers_for_control_count_batchh(db).await;
     match controls_res {
         Ok(data) => status::Custom(
             Status::Ok,
             serde_json::to_string(&data)
-                .expect("can serialize the number of associated metrics (batch) to JSON"),
+                .expect("can serialize the number of associated enablers (batch) to JSON"),
         ),
         Err(err) => {
             println!(
-                "Something went wrong getting the number of associated metrics (batch): {}",
+                "Something went wrong getting the number of associated enablers (batch): {}",
                 err
             );
             status::Custom(

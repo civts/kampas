@@ -3,7 +3,7 @@ use surrealdb::sql::Thing;
 
 pub(crate) mod connection;
 pub(crate) mod control;
-pub(crate) mod metric;
+pub(crate) mod enabler;
 pub(crate) mod ranking;
 pub(crate) mod tag;
 pub(crate) mod token;

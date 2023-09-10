@@ -1,33 +1,33 @@
 import { BACKEND_URL } from '$env/static/private';
-import type { Metric } from '$lib/models/bindings/Metric';
+import type { Enabler } from '$lib/models/bindings/Enabler';
 
-export async function getMetricsForControl(
+export async function getEnablersForControl(
 	session: Session,
 	control_id: string
-): Promise<Metric[]> {
-	const response = await fetch(`${BACKEND_URL}/api/v1/metrics?control_id=${control_id}`, {
+): Promise<Enabler[]> {
+	const response = await fetch(`${BACKEND_URL}/api/v1/enablers?control_id=${control_id}`, {
 		headers: { Authorization: `Bearer ${session.auth_token}` }
 	});
 	if (response.ok) {
-		const data: Metric[] = await response.json();
+		const data: Enabler[] = await response.json();
 		return data;
 	} else {
 		return [];
 	}
 }
 
-export async function get_control_associated_to_metric_batch(
+export async function get_control_associated_to_enabler_batch(
 	session: Session,
-	metric_ids: String[]
+	enabler_ids: String[]
 ): Promise<number[]> {
 	try {
-		const controls_resp = await fetch(BACKEND_URL + '/api/v1/metrics/get_number_controls_batch', {
+		const controls_resp = await fetch(BACKEND_URL + '/api/v1/enablers/get_number_controls_batch', {
 			method: 'POST',
 			headers: {
 				Authorization: `Bearer ${session.auth_token}`,
 				'Content-Type': 'application/json'
 			},
-			body: JSON.stringify(metric_ids)
+			body: JSON.stringify(enabler_ids)
 		});
 
 		let completion: number[] = await controls_resp.json();
@@ -38,34 +38,37 @@ export async function get_control_associated_to_metric_batch(
 	}
 }
 
-export async function getMetrics(session: Session): Promise<Metric[]> {
-	const response = await fetch(`${BACKEND_URL}/api/v1/metrics`, {
+export async function getEnablers(session: Session): Promise<Enabler[]> {
+	const response = await fetch(`${BACKEND_URL}/api/v1/enablers`, {
 		headers: { Authorization: `Bearer ${session.auth_token}` }
 	});
 	if (response.ok) {
-		const data: Metric[] = await response.json();
+		const data: Enabler[] = await response.json();
 		return data;
 	} else {
 		return [];
 	}
 }
 
-export async function getMetric(session: Session, metric_id: string): Promise<Metric | undefined> {
-	const response = await fetch(`${BACKEND_URL}/api/v1/metrics/${metric_id}`, {
+export async function getEnabler(
+	session: Session,
+	enabler_id: string
+): Promise<Enabler | undefined> {
+	const response = await fetch(`${BACKEND_URL}/api/v1/enablers/${enabler_id}`, {
 		headers: { Authorization: `Bearer ${session.auth_token}` }
 	});
 	if (response.ok) {
-		const data: Metric = await response.json();
+		const data: Enabler = await response.json();
 		return data;
 	} else {
 		return undefined;
 	}
 }
 
-export async function get_coverage_for_metric(metric_id: String, session: Session) {
+export async function get_coverage_for_enabler(enabler_id: String, session: Session) {
 	try {
 		const coverage_resp = await fetch(
-			BACKEND_URL + `/api/v1/metrics/coverage_for_metric?metric_id=${metric_id}`,
+			BACKEND_URL + `/api/v1/enablers/coverage_for_enabler?enabler_id=${enabler_id}`,
 			{
 				headers: {
 					Authorization: `Bearer ${session.auth_token}`

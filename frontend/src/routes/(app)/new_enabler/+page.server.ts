@@ -34,7 +34,7 @@ export const actions: Actions = {
 		formData.set('description', description);
 		formData.set('effort', effort_str);
 
-		const response = await fetch(BACKEND_URL + '/api/v1/metrics', {
+		const response = await fetch(BACKEND_URL + '/api/v1/enablers', {
 			method: 'POST',
 			headers: {
 				Authorization: `Bearer ${session.auth_token}`
@@ -45,7 +45,7 @@ export const actions: Actions = {
 			return { success: true };
 		} else {
 			return fail(response.status, {
-				reason: 'Could not create the metric. The server said:' + (await response.text())
+				reason: 'Could not create the enabler. The server said:' + (await response.text())
 			});
 		}
 	}

@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { Control } from '$lib/models/bindings/Control';
-	import type { Metric } from '$lib/models/bindings/Metric';
+	import type { Enabler } from '$lib/models/bindings/Enabler';
 	import type { Tag as TagI } from '$lib/models/bindings/Tag';
 	import AddTagButton from '../../../../components/add_tag_button.svelte';
 	import Tag from '../../../../components/tag.svelte';
@@ -20,7 +20,7 @@
 	}
 
 	const filter_by_tag = (
-		m: Control | Metric | undefined,
+		m: Control | Enabler | undefined,
 		tags: Map<String, TagI[]>,
 		filter_tags: TagI[],
 		any_tag: boolean
@@ -36,28 +36,27 @@
 			return tags_for_this?.find((t) => t.identifier == tag.identifier) != undefined;
 		};
 		if (any_tag) {
-			// Show the metrics that have at least one of the tags
+			// Show the enablers that have at least one of the tags
 			const matching_tag = filter_tags.find(sameTag);
 			return matching_tag != undefined;
 		} else {
-			// Show only the metrics that have all the tags
+			// Show only the enablers that have all the tags
 			const unmatching_tag = filter_tags.find((tag) => !sameTag(tag));
 			return unmatching_tag == undefined;
 		}
 	};
 
-	$: filtered_metrics = data.metrics.filter((t) =>
-		filter_by_tag(t, data.metrics_tags, filter_tags, any_tag)
-	);
+	$: filtered_enablers =
+		data.enablers.filter((t) => filter_by_tag(t, data.enablers_tags, filter_tags, any_tag)) ?? [];
 
 	$: filtered_controls = data.controls.filter((c) =>
 		filter_by_tag(c, data.control_tags, filter_tags, any_tag)
 	);
 
 	$: average_progress =
-		filtered_metrics.reduce((prev, m) => {
+		filtered_enablers.reduce((prev, m) => {
 			return prev + (m?.progress ?? 0);
-		}, 0) / filtered_metrics.length;
+		}, 0) / filtered_enablers.length;
 
 	$: rounded_average_progress = (Math.round(average_progress * 100) / 100).toFixed(2);
 </script>
@@ -102,25 +101,37 @@
 			</div>
 		</section>
 		<section>
-			<h2>Metrics</h2>
-			<p>Average progress of these metrics: {rounded_average_progress}%</p>
-			<ol>
-				{#each filtered_metrics || [] as m}
-					<li>
-						<a href="/metrics/{m?.identifier}">{m?.title}</a> (progress: {m?.progress}%)
-					</li>
-				{/each}
-			</ol>
+			<h2>Enablers</h2>
+			{#if filtered_enablers.length > 0}
+				<p>Average progress of these enablers: {rounded_average_progress}%</p>
+				<ol>
+					{#each filtered_enablers as m}
+						<li>
+							<a href="/enablers/{m?.identifier}">{m?.title}</a> (progress: {m?.progress}%)
+						</li>
+					{/each}
+				</ol>{:else}
+				Nothing to show, try filtering for something else
+			{/if}
 		</section>
 		<section>
 			<h2>Controls</h2>
-			<ol>
-				{#each filtered_controls || [] as c}
-					<li>
-						<a href="/controls/{c?.identifier}">{c?.title}</a>
-					</li>
-				{/each}
-			</ol>
+			{#if filtered_controls.length > 0}
+				<p>
+					If all the previous enablers are completed, the following controls will be completed as
+					well. <br /> Most likely, other controls will be improved too when implementing the enablers.
+				</p>
+
+				<ol>
+					{#each filtered_controls as c}
+						<li>
+							<a href="/controls/{c?.identifier}">{c?.title}</a>
+						</li>
+					{/each}
+				</ol>
+			{:else}
+				Nothing to show, try filtering for something else
+			{/if}
 		</section>
 	{:else}
 		No ranking for that name. Maybe it does not exist, maybe you don't have access.

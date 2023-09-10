@@ -1,5 +1,5 @@
 use super::Record;
-use crate::models::metric::Metric;
+use crate::models::enabler::Enabler;
 use crate::models::tag::Tag;
 use serde::{Deserialize, Serialize};
 use std::collections::{BTreeMap, HashMap, HashSet};
@@ -7,11 +7,14 @@ use surrealdb::engine::remote::ws::Client;
 use surrealdb::sql::{Id, Thing};
 use surrealdb::Surreal;
 
-pub(crate) async fn add_metric(metric: Metric, db: &Surreal<Client>) -> surrealdb::Result<String> {
-    // Create a new metric with a random id
+pub(crate) async fn add_enabler(
+    enabler: Enabler,
+    db: &Surreal<Client>,
+) -> surrealdb::Result<String> {
+    // Create a new enabler with a random id
     let _created: Record = db
-        .create(("metric", &metric.identifier))
-        .content(metric)
+        .create(("enabler", &enabler.identifier))
+        .content(enabler)
         .await?;
     match _created.id.id {
         Id::String(id_str) => Ok(id_str),
@@ -19,19 +22,19 @@ pub(crate) async fn add_metric(metric: Metric, db: &Surreal<Client>) -> surreald
     }
 }
 
-pub(crate) async fn get_metrics(db: &Surreal<Client>) -> surrealdb::Result<Vec<Metric>> {
+pub(crate) async fn get_enablers(db: &Surreal<Client>) -> surrealdb::Result<Vec<Enabler>> {
     // Select all records
-    let metrics: Vec<Metric> = db.select("metric").await?;
+    let enablers: Vec<Enabler> = db.select("enabler").await?;
 
-    Ok(metrics)
+    Ok(enablers)
 }
 
-pub(crate) async fn get_metrics_for_control(
+pub(crate) async fn get_enablers_for_control(
     control_id: &str,
     db: &Surreal<Client>,
-) -> surrealdb::Result<Vec<Metric>> {
-    let metrics: Vec<Metric> = db
-        .query("SELECT * FROM metric WHERE id INSIDE $control_id<-measures.in")
+) -> surrealdb::Result<Vec<Enabler>> {
+    let enablers: Vec<Enabler> = db
+        .query("SELECT * FROM enabler WHERE id INSIDE $control_id<-satisfies.in")
         .bind((
             "control_id",
             Thing {
@@ -42,16 +45,16 @@ pub(crate) async fn get_metrics_for_control(
         .await?
         .take(0)?;
 
-    Ok(metrics)
+    Ok(enablers)
 }
 
-pub(crate) async fn get_metric(
+pub(crate) async fn get_enabler(
     db: &Surreal<Client>,
     id: String,
-) -> surrealdb::Result<Option<Metric>> {
-    let metric: Option<Metric> = db.select(("metric", id)).await?;
+) -> surrealdb::Result<Option<Enabler>> {
+    let enabler: Option<Enabler> = db.select(("enabler", id)).await?;
 
-    Ok(metric)
+    Ok(enabler)
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -59,14 +62,14 @@ pub(crate) async fn get_metric(
 struct _Helper {
     id: Thing,
 }
-pub(crate) async fn associate_metric(
-    metric_id: &str,
+pub(crate) async fn associate_enabler(
+    enabler_id: &str,
     control_id: &str,
     coverage: u8,
     db: &Surreal<Client>,
 ) -> surrealdb::Result<()> {
     let are_not_associated_already: Option<_Helper> = db
-        .query("SELECT id FROM measures WHERE in=$mid AND out=$cid")
+        .query("SELECT id FROM satisfies WHERE in=$mid AND out=$cid")
         .bind((
             "cid",
             Thing {
@@ -77,8 +80,8 @@ pub(crate) async fn associate_metric(
         .bind((
             "mid",
             Thing {
-                id: Id::String(metric_id.to_string()),
-                tb: "metric".to_string(),
+                id: Id::String(enabler_id.to_string()),
+                tb: "enabler".to_string(),
             },
         ))
         .await?
@@ -86,13 +89,13 @@ pub(crate) async fn associate_metric(
     match are_not_associated_already {
         Some(id) => Err(surrealdb::Error::Api(
             surrealdb::error::Api::InvalidRequest(
-                format!("Control and metric are already associated in {id:?}").to_string(),
+                format!("Control and enabler are already associated in {id:?}").to_string(),
             ),
         )),
         None => {
             let response = db
                 // .query("RELATE ((SELECT id FROM tag WHERE identifier = $tid)[0].id)->tags->((SELECT id FROM control WHERE identifier = $cid)[0].id)")
-                .query("RELATE $mid->measures->$cid SET coverage = $coverage")
+                .query("RELATE $mid->satisfies->$cid SET coverage = $coverage")
                 .bind((
                     "cid",
                     Thing {
@@ -103,8 +106,8 @@ pub(crate) async fn associate_metric(
                 .bind((
                     "mid",
                     Thing {
-                        id: Id::String(metric_id.to_string()),
-                        tb: "metric".to_string(),
+                        id: Id::String(enabler_id.to_string()),
+                        tb: "enabler".to_string(),
                     },
                 ))
                 .bind(("coverage", coverage))
@@ -117,29 +120,29 @@ pub(crate) async fn associate_metric(
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(crate = "rocket::serde")]
 /// Dummy struct to make deserializing from the result in
-/// get_metric_control_association easier
+/// get_enabler_control_association easier
 struct Helper {
-    metric: Thing,
+    enabler: Thing,
     control: Thing,
     coverage: u8,
 }
 
-pub(crate) async fn get_metric_control_association(
+pub(crate) async fn get_enabler_control_association(
     db: &Surreal<Client>,
 ) -> surrealdb::Result<BTreeMap<String, Vec<(String, u8)>>> {
     let mut response = db
-        .query("SELECT in as metric, out as control, coverage FROM measures")
+        .query("SELECT in as enabler, out as control, coverage FROM satisfies")
         .await?;
     let results: Vec<Helper> = response.take(0)?;
     let mut result: BTreeMap<String, Vec<(String, u8)>> = BTreeMap::new();
     results.iter().for_each(|obj| {
-        let key = match &obj.metric.id {
+        let key = match &obj.enabler.id {
             Id::String(str) => str.into(),
-            _ => panic!("A metric's id must be a string"),
+            _ => panic!("A enabler's id must be a string"),
         };
         let value = match &obj.control.id {
             Id::String(str) => (str.into(), obj.coverage),
-            _ => panic!("A metric's id must be a string"),
+            _ => panic!("A enabler's id must be a string"),
         };
         if let Some(prev_value) = result.get_mut(&key) {
             // If the key is already present, push the value into the existing vector
@@ -161,19 +164,19 @@ struct HelperR {
     coverage: u8,
 }
 
-/// Given a metric id, it returns a map that associates the control_ids
-/// measured by this metric to their coverage
-pub(crate) async fn get_coverage_for_metric(
-    metric_id: &str,
+/// Given a enabler id, it returns a map that associates the control_ids
+/// satisfied by this enabler to their coverage
+pub(crate) async fn get_coverage_for_enabler(
+    enabler_id: &str,
     db: &Surreal<Client>,
 ) -> surrealdb::Result<HashMap<String, u8>> {
     let res: Vec<HelperR> = db
-        .query("SELECT coverage, out as control FROM $metric_id->measures")
+        .query("SELECT coverage, out as control FROM $enabler_id->satisfies")
         .bind((
-            "metric_id",
+            "enabler_id",
             Thing {
-                id: Id::String(metric_id.to_string()),
-                tb: "metric".to_string(),
+                id: Id::String(enabler_id.to_string()),
+                tb: "enabler".to_string(),
             },
         ))
         .await?
@@ -193,22 +196,22 @@ struct HelperR2 {
     ids: Vec<Thing>,
 }
 
-/// Given a metric id, it returns a vector with the ids of the tags of
-/// all the controls this metric measures
-pub(crate) async fn get_tags_for_metric(
-    metric_id: &str,
+/// Given a enabler id, it returns a vector with the ids of the tags of
+/// all the controls this enabler satisfies
+pub(crate) async fn get_tags_for_enabler(
+    enabler_id: &str,
     db: &Surreal<Client>,
 ) -> surrealdb::Result<Vec<Tag>> {
     let mut res: Vec<Tag> = db
-        // .query("SELECT id FROM $metrics->measures.out<-tags.in")
-        // .query("SELECT array::group(id) as ids FROM $metrics->measures.out<-tags.in.id GROUP ALL")
-        .query("SELECT * FROM $metrics->measures.out<-tags.in.*")
-        //You can also use a vec<Thing> and get the aggregate tags of more metrics at once
+        // .query("SELECT id FROM $enablers->satisfies.out<-tags.in")
+        // .query("SELECT array::group(id) as ids FROM $enablers->satisfies.out<-tags.in.id GROUP ALL")
+        .query("SELECT * FROM $enablers->satisfies.out<-tags.in.*")
+        //You can also use a vec<Thing> and get the aggregate tags of more enablers at once
         .bind((
-            "metrics",
+            "enablers",
             Thing {
-                id: Id::String(metric_id.to_string()),
-                tb: "metric".to_string(),
+                id: Id::String(enabler_id.to_string()),
+                tb: "enabler".to_string(),
             },
         ))
         .await?
@@ -226,14 +229,14 @@ pub(crate) async fn get_tags_for_metric(
     Ok(de_duplicated)
 }
 
-pub(crate) async fn update_metric(
-    metric: Metric,
+pub(crate) async fn update_enabler(
+    enabler: Enabler,
     db: &Surreal<Client>,
 ) -> surrealdb::Result<String> {
-    // Create a new metric with a random id
+    // Create a new enabler with a random id
     let _created: Record = db
-        .update(("metric", &metric.identifier))
-        .content(metric)
+        .update(("enabler", &enabler.identifier))
+        .content(enabler)
         .await?;
     match _created.id.id {
         Id::String(id_str) => Ok(id_str),
@@ -247,7 +250,7 @@ struct Helper3 {
     progress: u8,
 }
 
-/// Returns the progress of all metrics
+/// Returns the progress of all enablers
 pub(crate) async fn get_number_controls_batch(
     db: &Surreal<Client>,
     ids: Vec<String>,
@@ -255,12 +258,12 @@ pub(crate) async fn get_number_controls_batch(
     let ids_vec: Vec<Thing> = ids
         .iter()
         .map(|id| Thing {
-            tb: "metric".to_string(),
+            tb: "enabler".to_string(),
             id: Id::String(id.to_string()),
         })
         .collect();
     let res: Vec<HelperR2> = db
-        .query("SELECT id as ids FROM $mid->measures")
+        .query("SELECT id as ids FROM $mid->satisfies")
         .bind(("mid", ids_vec))
         .await?
         .take(0)?;

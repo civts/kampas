@@ -24,17 +24,17 @@ pub(crate) async fn get_controls(db: &Surreal<Client>) -> surrealdb::Result<Vec<
     Ok(controls)
 }
 
-pub(crate) async fn get_controls_for_metric(
-    metric_id: &str,
+pub(crate) async fn get_controls_for_enabler(
+    enabler_id: &str,
     db: &Surreal<Client>,
 ) -> surrealdb::Result<Vec<Control>> {
     let controls: Vec<Control> = db
-        .query("SELECT * FROM control WHERE id INSIDE $metric_id->measures.out")
+        .query("SELECT * FROM control WHERE id INSIDE $enabler_id->satisfies.out")
         .bind((
-            "metric_id",
+            "enabler_id",
             Thing {
-                id: Id::String(metric_id.to_string()),
-                tb: "metric".to_string(),
+                id: Id::String(enabler_id.to_string()),
+                tb: "enabler".to_string(),
             },
         ))
         .await?
@@ -60,13 +60,13 @@ struct _Helper {
 }
 
 /// Returns the completion of the given control, which is computed by
-/// adding the contributions of all the associated metrics.
+/// adding the contributions of all the associated enablers.
 pub(crate) async fn get_control_completion(
     db: &Surreal<Client>,
     id: String,
 ) -> surrealdb::Result<f64> {
     let query_res: Vec<_Helper> = db
-        .query("SELECT coverage, in.progress as progress FROM $cid<-measures")
+        .query("SELECT coverage, in.progress as progress FROM $cid<-satisfies")
         .bind((
             "cid",
             Thing {
@@ -95,7 +95,7 @@ pub(crate) async fn get_control_completion_batch(
     ids: Vec<String>,
 ) -> surrealdb::Result<Vec<f64>> {
     let query_res: Vec<_Helper2> = db
-        .query("SELECT coverage, in.progress as progress FROM $cids<-measures")
+        .query("SELECT coverage, in.progress as progress FROM $cids<-satisfies")
         .bind((
             "cids",
             Vec::from_iter(ids.iter().map(|id| Thing {
@@ -129,13 +129,13 @@ struct _Helper3 {
     id: Thing,
     count: u64,
 }
-pub(crate) async fn get_metrics_for_control_count_batch(
+pub(crate) async fn get_enablers_for_control_count_batch(
     db: &Surreal<Client>,
 ) -> surrealdb::Result<HashMap<String, u64>> {
     let controls: Vec<_Helper3> = db
-        // .query("SELECT id FROM control WHERE id NOT IN (SELECT out FROM measures GROUP out).out")
-        // .query("SELECT * FROM control WHERE count(<-measures) = 0")
-        .query("SELECT id, count(<-measures) FROM control")
+        // .query("SELECT id FROM control WHERE id NOT IN (SELECT out FROM satisfies GROUP out).out")
+        // .query("SELECT * FROM control WHERE count(<-satisfies) = 0")
+        .query("SELECT id, count(<-satisfies) FROM control")
         .await?
         .take(0)?;
 
