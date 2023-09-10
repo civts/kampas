@@ -1,12 +1,14 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
+	import { afterUpdate, onMount } from 'svelte';
 	import { select, scaleLinear, axisBottom, axisLeft, scaleBand } from 'd3';
 
 	export let data: number[];
 	export let chartWidth = 500;
 	export let chartHeight = 300;
 
-	onMount(() => {
+	let chart: Element;
+
+	afterUpdate(() => {
 		if (data.length == 0) {
 			console.log('Not showing the graph since we have nothing show');
 			return;
@@ -30,8 +32,11 @@
 		const width = chartWidth - margin.horizontal * 2;
 		const height = chartHeight - margin.vertical * 2;
 
+		// Clear the svg
+		chart.innerHTML = '';
+
 		// append the svg object to the body of the page
-		let svg = select('.chart')
+		let svg = select(chart)
 			.attr('width', width + margin.horizontal * 2)
 			.attr('height', height + margin.vertical * 2)
 			.append('g')
@@ -78,7 +83,7 @@
 	});
 </script>
 
-<svg class="chart" />
+<svg class="chart" bind:this={chart} />
 
 <style lang="scss">
 	svg {

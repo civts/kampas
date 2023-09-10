@@ -5,7 +5,6 @@ use crate::{
         add_metric as add_metricl, associate_metric as associate_metricl,
         get_coverage_for_metric as get_coverage_for_metricc, get_metric as get_metricl,
         get_metrics as get_metricss, get_metrics_for_control as get_metrics_for_controll,
-        get_metrics_progess as get_metrics_progesss,
         get_number_controls_batch as get_number_controls_batchh,
         get_tags_for_metric as get_tags_for_metricc, update_metric as update_metricc,
     },
@@ -271,29 +270,6 @@ pub(crate) async fn update_metric(
         },
         Err(err) => {
             println!("Could not get the metric to update: {err:?}");
-            status::Custom(
-                Status::InternalServerError,
-                Status::InternalServerError.reason_lossy().to_string(),
-            )
-        }
-    }
-}
-
-#[get("/progress")]
-pub(crate) async fn get_metrics_progess(
-    user: User,
-    _required_roles: GetMetricsRole,
-    db: &State<Surreal<Client>>,
-) -> status::Custom<String> {
-    let progress_res = get_metrics_progesss(db).await;
-    println!("{} is requesting the metrics progress", user.username);
-    match progress_res {
-        Ok(metrics) => status::Custom(
-            Status::Ok,
-            serde_json::to_string(&metrics).expect("can serialize the progress to JSON"),
-        ),
-        Err(err) => {
-            println!("Something went wrong getting the metrics progress: {}", err);
             status::Custom(
                 Status::InternalServerError,
                 Status::InternalServerError.reason_lossy().to_string(),

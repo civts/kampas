@@ -35,7 +35,10 @@ export async function get_tags_for_metric(metric_id: String, session: Session) {
 	}
 }
 
-export async function get_tags_for_control_batch(control_ids: string[], session: Session) {
+export async function get_tags_for_control_batch(
+	control_ids: string[],
+	session: Session
+): Promise<Map<string, Tag[]>> {
 	console.log('Requesting batch tags');
 	const response = await fetch(`${BACKEND_URL}/api/v1/tags/get_tags_batch`, {
 		method: 'POST',
@@ -51,6 +54,20 @@ export async function get_tags_for_control_batch(control_ids: string[], session:
 			const tags = data[i];
 			result.set(control_id, tags);
 		}
+
+		return result;
+	} else {
+		return new Map();
+	}
+}
+
+export async function get_tags_for_metric_batch(session: Session): Promise<Map<string, string[]>> {
+	console.log('Requesting batch tags');
+	const response = await fetch(`${BACKEND_URL}/api/v1/tags/get_metric_tag_ids_batch`, {
+		headers: { Authorization: `Bearer ${session.auth_token}`, 'Content-Type': 'application/json' }
+	});
+	if (response.ok) {
+		const result: Map<string, string[]> = new Map(Object.entries(await response.json()));
 
 		return result;
 	} else {

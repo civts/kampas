@@ -181,3 +181,32 @@ pub(crate) async fn get_tags_batch(
 
     Ok(qres)
 }
+
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(crate = "rocket::serde")]
+struct _Helper3 {
+    id: Thing,
+    tags: Vec<Thing>,
+}
+
+pub(crate) async fn get_metric_tag_ids_batch(
+    db: &Surreal<Client>,
+) -> surrealdb::Result<HashMap<String, Vec<String>>> {
+    let qres: Vec<_Helper3> = db
+        .query("SELECT id, array::distinct(->measures.out<-tags.in) as tags FROM metric")
+        .await?
+        .take(0)?;
+    let res = HashMap::from_iter(qres.iter().map(|h| {
+        fn extract_id(h: &Thing) -> String {
+            match &h.id {
+                Id::String(id_str) => id_str.clone(),
+                _ => panic!("We don't do that here. We shall only use String IDs"),
+            }
+        }
+        let id = extract_id(&h.id);
+        let cids = h.tags.iter().map(extract_id).collect();
+        (id, cids)
+    }));
+
+    Ok(res)
+}

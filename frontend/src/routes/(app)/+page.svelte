@@ -1,61 +1,141 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
+	import type { Control } from '$lib/models/bindings/Control';
+	import type { Tag as TagI } from '$lib/models/bindings/Tag';
+	import AddTagButton from '../../components/add_tag_button.svelte';
 	import BarChart from '../../components/bar_chart.svelte';
 	import RoundGauge from '../../components/round_gauge.svelte';
+	import Tag from '../../components/tag.svelte';
 	import type { PageData } from './$types';
 
 	export let data: PageData;
 
-	const controls_count = data.controls.length;
-	const sum = data.controls.reduce(
-		(total, control) => total + (data.completion.get(control.identifier) || 0),
-		0
-	);
+	let selected_tags: TagI[] = [];
+	let filtered_controls = data.controls;
 
+	let controls_progress: number[] = [];
+
+	let controls_count = 0;
 	let average_completion = 0;
-	if (controls_count != 0) {
-		average_completion = sum / controls_count;
-	}
-	let controls_progress = data.controls.map(
-		(control) => data.completion.get(control.identifier) || 0
-	);
+	let controls_completed = 0;
 
-	const controls_completed = data.controls.filter(
-		(c) => data.completion.get(c.identifier) || 0 >= 100
-	).length;
-
-	let sortedControlsColumn = 'title';
-	let sortControlsDirection = 1;
-	$: sorted_controls = data.controls.sort((a, b) => {
-		if (sortedControlsColumn == 'title') {
-			return a.title.localeCompare(b.title) * sortControlsDirection;
-		} else if (sortedControlsColumn === 'metrics') {
-			const na = data.number_of_metrics_per_control.get(a.identifier) ?? 0;
-			const nb = data.number_of_metrics_per_control.get(b.identifier) ?? 0;
-			const cmp = na - nb;
-			return cmp * sortControlsDirection;
-		}
-		return 0;
-	});
-
-	const metrics_count = data.metrics_progress.length;
-	const metrics_sum = data.metrics_progress.reduce(
-		(total, metric) => total.valueOf() + metric.valueOf(),
-		0
-	);
-	let metrics_completion = 0;
-	if (metrics_count != 0) {
-		metrics_completion = metrics_sum.valueOf() / metrics_count;
-	}
-
-	const metrics_completed = data.metrics_progress.filter((c) => c >= 100).length;
+	let metrics_count = 0;
+	let metrics_completed = 0;
+	let metrics_avg_completion = 0;
 
 	let sortedColumn = 'title';
 	let sortDirection = 1;
+	let sorted_controls: Control[] = [];
 
-	let sortedMetrics = [...data.metrics];
+	let sortedControlsColumn = 'progress';
+	let sortControlsDirection = 1;
+	let sortedMetrics = data.metrics;
+	updateMetrics();
+	updateControls();
 
-	function sortTable(column: string) {
+	async function addTag(tag: TagI) {
+		if (selected_tags.findIndex((t) => t.identifier == tag.identifier) == -1) {
+			selected_tags.push(tag);
+			selected_tags = selected_tags;
+			updateMetrics();
+			updateControls();
+		}
+		return true;
+	}
+
+	async function removeTag(tag: TagI) {
+		const index = selected_tags.indexOf(tag);
+		if (index != -1) {
+			selected_tags.splice(index, 1);
+			selected_tags = selected_tags;
+			updateMetrics();
+			updateControls();
+		}
+	}
+
+	function updateControls() {
+		filtered_controls = data.controls.filter((control) => {
+			let s = new Set(
+				data.tags_for_control.get(control.identifier)?.map((t) => t.identifier) ?? []
+			);
+			return selected_tags.every((t) => s.has(t.identifier));
+		});
+
+		updateControlsStats();
+
+		sortControlsTable('title');
+	}
+
+	function updateControlsStats() {
+		controls_count = filtered_controls.length;
+		const sum = filtered_controls.reduce(
+			(total, control) => total + (data.completion.get(control.identifier) || 0),
+			0
+		);
+		if (controls_count != 0) {
+			average_completion = sum / controls_count;
+		} else {
+			average_completion = 0;
+		}
+
+		controls_completed = filtered_controls.filter(
+			(c) => (data.completion.get(c.identifier) || 0) >= 99.99999999
+		).length;
+		controls_progress = filtered_controls.map(
+			(control) => data.completion.get(control.identifier) || 0
+		);
+		sorted_controls = filtered_controls;
+	}
+
+	function sortControlsTable(column: string) {
+		if (sortedControlsColumn === column) {
+			sortControlsDirection *= -1;
+		} else {
+			sortControlsDirection = 1;
+			sortedControlsColumn = column;
+		}
+		sorted_controls = sorted_controls.sort((a, b) => {
+			if (column == 'title') {
+				return a.title.localeCompare(b.title) * sortControlsDirection;
+			} else if (column === 'metrics') {
+				const na = data.number_of_metrics_per_control.get(a.identifier) ?? 0;
+				const nb = data.number_of_metrics_per_control.get(b.identifier) ?? 0;
+				const cmp = na - nb;
+				return cmp * sortControlsDirection;
+			} else if (column === 'controlprogress') {
+				const na = data.completion.get(a.identifier) ?? 0;
+				const nb = data.completion.get(b.identifier) ?? 0;
+				const cmp = na - nb;
+				return cmp * sortControlsDirection;
+			}
+			return 0;
+		});
+	}
+
+	function updateMetrics() {
+		sortedMetrics = data.metrics.filter((metric) => {
+			let s = new Set(data.tags_for_metric.get(metric.identifier) ?? []);
+			return selected_tags.every((t) => s.has(t.identifier));
+		});
+		updateMetricsStats();
+	}
+
+	function updateMetricsStats() {
+		metrics_count = sortedMetrics.length;
+		const metrics_sum = sortedMetrics.reduce((total, metric) => {
+			return total.valueOf() + metric.progress;
+		}, 0);
+		if (metrics_count != 0) {
+			metrics_avg_completion = metrics_sum.valueOf() / metrics_count;
+		} else {
+			metrics_avg_completion = 0;
+		}
+
+		metrics_completed = sortedMetrics.filter((m) => {
+			return m.progress >= 99.99999999;
+		}).length;
+	}
+
+	function sortMetricsTable(column: string) {
 		if (sortedColumn === column) {
 			sortDirection *= -1;
 		} else {
@@ -77,20 +157,27 @@
 		}
 		sortedMetrics = sortedMetrics;
 	}
-
-	onMount(() => {
-		sortedMetrics = [...data.metrics];
-	});
 </script>
 
 <head>
-	<title>Kartik frontend</title>
+	<title>Kartik dashboard</title>
 </head>
 
 {#if data?.user}
+	<div class="row start">
+		{#each selected_tags as tag}
+			<Tag {tag} close_callback={removeTag} />
+		{/each}
+		<AddTagButton callback={addTag} />
+	</div>
 	<section>
 		<h1>Controls</h1>
-		<p>The company has {controls_count} controls</p>
+		<p>
+			The company has {controls_count} controls
+			{#if selected_tags.length > 0}
+				with the selected tags
+			{/if}
+		</p>
 
 		<p>See the complete list of <a href="/controls">all controls</a></p>
 
@@ -106,11 +193,11 @@
 			</div>
 
 			<div>
-				<RoundGauge value={average_completion} color="purple" />
+				<RoundGauge value={average_completion} percent={true} color="purple" />
 				<p>On average, they are {Math.round(average_completion)}% complete</p>
 			</div>
 
-			{#if controls_count != 0}
+			{#if controls_count > 1}
 				<div>
 					<div class="barchart">
 						<BarChart data={controls_progress} />
@@ -123,7 +210,12 @@
 
 	<section>
 		<h1>Metrics</h1>
-		<p>The company has {metrics_count} metrics</p>
+		<p>
+			The company has {metrics_count} metrics
+			{#if selected_tags.length > 0}
+				with the selected tags
+			{/if}
+		</p>
 
 		<div class="row">
 			<div>
@@ -137,26 +229,35 @@
 			</div>
 
 			<div>
-				<RoundGauge value={metrics_completion} color="#99f" />
-				<p>On average, they are {Math.round(metrics_completion)}% complete</p>
+				<RoundGauge value={metrics_avg_completion} percent={true} color="#99f" />
+				<p>On average, they are {Math.round(metrics_avg_completion)}% complete</p>
 			</div>
+
+			{#if metrics_count > 1}
+				<div>
+					<div class="barchart">
+						<BarChart data={sortedMetrics.map((m) => m.progress)} />
+					</div>
+					<p>Here is the distribution of how complete they are</p>
+				</div>
+			{/if}
 		</div>
 
 		<table cellspacing="0">
 			<tr>
-				<th on:click={() => sortTable('title')}>
+				<th on:click={() => sortMetricsTable('title')}>
 					Metric title
 					{#if sortedColumn === 'title'}
 						<span class={sortDirection === 1 ? 'arrow down' : 'arrow up'} />
 					{/if}
 				</th>
-				<th on:click={() => sortTable('progress')}>
+				<th on:click={() => sortMetricsTable('progress')}>
 					Progress
 					{#if sortedColumn === 'progress'}
 						<span class={sortDirection === 1 ? 'arrow down' : 'arrow up'} />
 					{/if}
 				</th>
-				<th on:click={() => sortTable('controls')}>
+				<th on:click={() => sortMetricsTable('controls')}>
 					# of associated controls
 					{#if sortedColumn === 'controls'}
 						<span class={sortDirection === 1 ? 'arrow down' : 'arrow up'} />
@@ -172,33 +273,26 @@
 			{/each}
 		</table>
 	</section>
+
 	<section>
 		<h1>Controls and Metrics</h1>
 		<table cellspacing="0">
 			<tr>
-				<th
-					on:click={() => {
-						if (sortedControlsColumn == 'title') {
-							sortControlsDirection = -sortControlsDirection;
-						}
-						sortedControlsColumn = 'title';
-					}}
-				>
+				<th on:click={() => sortControlsTable('title')}>
 					Control title
 					{#if sortedControlsColumn === 'title'}
 						<span class={sortControlsDirection === 1 ? 'arrow down' : 'arrow up'} />
 					{/if}
 				</th>
-				<th
-					on:click={() => {
-						if (sortedControlsColumn == 'metrics') {
-							sortControlsDirection = -sortControlsDirection;
-						}
-						sortedControlsColumn = 'metrics';
-					}}
-				>
+				<th on:click={() => sortControlsTable('metrics')}>
 					# of associated metrics
 					{#if sortedControlsColumn === 'metrics'}
+						<span class={sortControlsDirection === 1 ? 'arrow down' : 'arrow up'} />
+					{/if}
+				</th>
+				<th on:click={() => sortControlsTable('controlprogress')}>
+					Progress
+					{#if sortedControlsColumn === 'controlprogress'}
 						<span class={sortControlsDirection === 1 ? 'arrow down' : 'arrow up'} />
 					{/if}
 				</th>
@@ -210,6 +304,9 @@
 					</td>
 					<td>
 						{data.number_of_metrics_per_control.get(control.identifier) ?? 0}
+					</td>
+					<td>
+						{data.completion.get(control.identifier) || 0}%
 					</td>
 				</tr>
 			{/each}
@@ -268,5 +365,10 @@
 		tr:nth-child(even) {
 			background-color: var(--input-bg);
 		}
+	}
+
+	.start {
+		justify-content: start;
+		gap: 1rem;
 	}
 </style>

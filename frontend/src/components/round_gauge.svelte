@@ -3,12 +3,13 @@
 	import { select, arc } from 'd3';
 
 	export let value: number;
+	export let percent: boolean = false;
 	export let max_value = 100;
 	export let width = 150;
 	export let height = 150;
 	export let thickness = 6;
 	export let color: string | undefined = undefined;
-	export let text: string = `${Math.round(value)}%`;
+	export let text: string = `${Math.round(value)}${percent ? '%' : ''}`;
 
 	let svgElement: Element;
 
@@ -38,6 +39,7 @@
 		}
 
 		svg.select('.progress-text').text(text);
+		text = `${Math.round(value)}${percent ? '%' : ''}`;
 	});
 </script>
 

@@ -248,15 +248,6 @@ struct Helper3 {
 }
 
 /// Returns the progress of all metrics
-pub(crate) async fn get_metrics_progess(db: &Surreal<Client>) -> surrealdb::Result<Vec<u8>> {
-    let res: Vec<Helper3> = db.query("SELECT progress FROM metric").await?.take(0)?;
-
-    let r2 = res.iter().map(|h| h.progress).collect();
-
-    Ok(r2)
-}
-
-/// Returns the progress of all metrics
 pub(crate) async fn get_number_controls_batch(
     db: &Surreal<Client>,
     ids: Vec<String>,

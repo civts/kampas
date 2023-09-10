@@ -79,15 +79,3 @@ export async function get_coverage_for_metric(metric_id: String, session: Sessio
 		return new Map<String, number>();
 	}
 }
-
-export async function get_metrics_progress(session: Session): Promise<Number[]> {
-	const response = await fetch(`${BACKEND_URL}/api/v1/metrics/progress`, {
-		headers: { Authorization: `Bearer ${session.auth_token}` }
-	});
-	if (response.ok) {
-		const data: Number[] = await response.json();
-		return data;
-	} else {
-		return [];
-	}
-}
