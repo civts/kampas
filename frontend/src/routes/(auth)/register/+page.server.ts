@@ -1,6 +1,6 @@
 import { fail, redirect } from '@sveltejs/kit';
 import type { Actions } from './$types';
-import { BACKEND_URL } from '$lib/costants';
+import { BACKEND_URL } from '$env/static/private';
 import { getSessionFromCookiesOrCreate } from '$lib/session_cookies';
 import { updateSession } from '$lib/session_redis';
 

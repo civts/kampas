@@ -1,4 +1,4 @@
-import { BACKEND_URL } from '$lib/costants';
+import { BACKEND_URL } from '$env/static/private';
 import type { Metric } from '$lib/models/bindings/Metric';
 
 export async function getMetricsForControl(

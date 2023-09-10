@@ -1,6 +1,5 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
-	import { BACKEND_URL } from '$lib/costants';
 	import type { ActionData } from './$types';
 
 	export let form: ActionData;
@@ -29,15 +28,16 @@
 
 <section>
 	<h1>Import controls from file</h1>
-	<form
-		action="{BACKEND_URL}/api/v1/controls/upload"
-		method="post"
-		enctype="multipart/form-data"
-		use:enhance
-	>
+	<form action="?/upload" method="post" enctype="multipart/form-data" use:enhance>
 		<label for="file">CSV file with the controls</label>
-		<input class="drop-zone" name="file" id="file" type="file" accept="text/csv" />
+		<input class="drop-zone" name="file" id="file" type="file" accept="text/csv" required />
 		<button type="submit">Upload</button>
+		{#if form?.file_success}
+			<p>Successfully added the controls!</p>
+		{/if}
+		{#if form?.file_reason}
+			<p class="error">Failed: {form?.file_reason}</p>
+		{/if}
 	</form>
 </section>
 

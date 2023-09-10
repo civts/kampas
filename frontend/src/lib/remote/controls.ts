@@ -1,4 +1,4 @@
-import { BACKEND_URL } from '$lib/costants';
+import { BACKEND_URL } from '$env/static/private';
 import type { Control } from '$lib/models/bindings/Control';
 
 export async function get_controls(session: Session) {

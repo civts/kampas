@@ -1,4 +1,4 @@
-import { BACKEND_URL } from '$lib/costants';
+import { BACKEND_URL } from '$env/static/private';
 import type { Ranking } from '$lib/models/bindings/Ranking';
 
 export async function get_ranking(session: Session, id: String) {

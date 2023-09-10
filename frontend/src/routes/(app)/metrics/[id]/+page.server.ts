@@ -1,4 +1,4 @@
-import { BACKEND_URL } from '$lib/costants';
+import { BACKEND_URL } from '$env/static/private';
 import { get_controls_for_metric } from '$lib/remote/controls';
 import { getMetric, get_coverage_for_metric } from '$lib/remote/metrics';
 import { get_tags_for_metric } from '$lib/remote/tags';

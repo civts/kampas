@@ -1,4 +1,4 @@
-import { BACKEND_URL } from '$lib/costants';
+import { BACKEND_URL } from '$env/static/private';
 import type { Tag } from '$lib/models/bindings/Tag';
 
 export async function get_tags(session: Session) {

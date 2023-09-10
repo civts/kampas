@@ -1,7 +1,7 @@
 import { redirect, type Handle, type RequestEvent } from '@sveltejs/kit';
 import { getSessionFromCookiesOrCreate } from '$lib/session_cookies';
-import { BACKEND_URL } from '$lib/costants';
 import { updateSession } from '$lib/session_redis';
+import { BACKEND_URL } from '$env/static/private';
 
 export const handle: Handle = async ({ event, resolve }) => {
 	const session = await getSessionFromCookiesOrCreate(event.cookies);

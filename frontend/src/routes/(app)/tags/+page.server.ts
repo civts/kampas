@@ -1,6 +1,6 @@
 import { getSessionFromCookiesOrCreate } from '$lib/session_cookies';
 import type { PageServerLoad } from './$types';
-import { BACKEND_URL } from '$lib/costants';
+import { BACKEND_URL } from '$env/static/private';
 import { fail, type Actions } from '@sveltejs/kit';
 import { get_tags } from '$lib/remote/tags';
 

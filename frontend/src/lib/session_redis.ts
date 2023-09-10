@@ -1,6 +1,6 @@
 import { v4 as uuidv4 } from 'uuid';
 import redis from 'redis';
-import { REDIS_URL } from './costants';
+import { REDIS_URL } from '$env/static/private';
 
 const client = redis.createClient({
 	url: REDIS_URL,
