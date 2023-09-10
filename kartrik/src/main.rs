@@ -26,7 +26,7 @@ use helpers::{cors::CORS, surrealdb::connection::get_client};
 
 #[get("/")]
 pub(crate) fn working() -> &'static str {
-    "Yes, we are up"
+    "Yes, kartrik is up"
 }
 
 #[launch]
