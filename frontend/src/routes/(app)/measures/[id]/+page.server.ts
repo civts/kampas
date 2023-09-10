@@ -1,20 +1,20 @@
 import { BACKEND_URL } from '$env/static/private';
-import { get_controls_for_enabler } from '$lib/remote/controls';
-import { getEnabler, get_coverage_for_enabler } from '$lib/remote/enablers';
-import { get_tags_for_enabler } from '$lib/remote/tags';
+import { get_controls_for_measure } from '$lib/remote/controls';
+import { getMeasure, get_coverage_for_measure } from '$lib/remote/measures';
+import { get_tags_for_measure } from '$lib/remote/tags';
 import { getSessionFromCookiesOrCreate } from '$lib/session_cookies';
 import { fail, type Actions } from '@sveltejs/kit';
 
 export async function load({ cookies, params }) {
 	const id = params.id;
 	let session = await getSessionFromCookiesOrCreate(cookies);
-	let enabler = await getEnabler(session, id);
-	let controls = await get_controls_for_enabler(id, session);
-	let coverage = await get_coverage_for_enabler(id, session);
-	let tags = await get_tags_for_enabler(id, session);
+	let measure = await getMeasure(session, id);
+	let controls = await get_controls_for_measure(id, session);
+	let coverage = await get_coverage_for_measure(id, session);
+	let tags = await get_tags_for_measure(id, session);
 
 	return {
-		enabler,
+		measure,
 		controls,
 		coverage,
 		tags
@@ -22,7 +22,7 @@ export async function load({ cookies, params }) {
 }
 
 export const actions: Actions = {
-	edit_enabler: async ({ request, fetch, cookies }) => {
+	edit_measure: async ({ request, fetch, cookies }) => {
 		let session = await getSessionFromCookiesOrCreate(cookies);
 		const formData = await request.formData();
 
@@ -72,7 +72,7 @@ export const actions: Actions = {
 		data.set('effort', effort);
 		data.set('progress', progress);
 
-		const response = await fetch(BACKEND_URL + `/api/v1/enablers/${id}`, {
+		const response = await fetch(BACKEND_URL + `/api/v1/measures/${id}`, {
 			method: 'PATCH',
 			headers: {
 				Authorization: `Bearer ${session.auth_token}`

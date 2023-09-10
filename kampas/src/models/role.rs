@@ -37,21 +37,21 @@ pub(crate) enum Role {
     #[serde(rename = "EditTags")]
     EditTags,
 
-    /// Can create new enablers
-    #[serde(rename = "CreateEnablers")]
-    CreateEnablers,
+    /// Can create new measures
+    #[serde(rename = "CreateMeasures")]
+    CreateMeasures,
 
-    /// Can see which enablers are present in the database
-    #[serde(rename = "GetEnablers")]
-    GetEnablers,
+    /// Can see which measures are present in the database
+    #[serde(rename = "GetMeasures")]
+    GetMeasures,
 
-    /// Can modify the enablers. This also grants permission to delete them.
-    #[serde(rename = "EditEnablers")]
-    EditEnablers,
+    /// Can modify the measures. This also grants permission to delete them.
+    #[serde(rename = "EditMeasures")]
+    EditMeasures,
 
-    /// Can associate (existing) enablers to (existing) controls
-    #[serde(rename = "AssociateEnablers")]
-    AssociateEnablers,
+    /// Can associate (existing) measures to (existing) controls
+    #[serde(rename = "AssociateMeasures")]
+    AssociateMeasures,
 
     /// Can create a new ranking
     #[serde(rename = "CreateRanking")]

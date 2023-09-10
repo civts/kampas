@@ -6,8 +6,8 @@ use ts_rs::TS;
 #[serde(crate = "rocket::serde")]
 #[ts(export, export_to = "../frontend/src/lib/models/bindings/")]
 pub(crate) struct Ranking {
-    /// Identifiers of the enablers!
-    pub(crate) enablers: Vec<String>,
+    /// Identifiers of the measures!
+    pub(crate) measures: Vec<String>,
     /// Identifiers of the controls
     pub(crate) controls: Vec<String>,
     /// Username of who created this one
@@ -25,7 +25,7 @@ pub(crate) struct Ranking {
 
 impl Ranking {
     pub(crate) fn new(
-        enablers: Vec<String>,
+        measures: Vec<String>,
         controls: Vec<String>,
         created_by: &str,
         ordering: RankOrdering,
@@ -39,7 +39,7 @@ impl Ranking {
             identifier: id,
             created_by: created_by.to_string(),
             name: name.to_string(),
-            enablers,
+            measures,
             controls,
             ordering,
             minimum_coverage,
@@ -55,7 +55,7 @@ pub(crate) enum RankOrdering {
     #[serde(rename = "greedy_w_set_cover")]
     GreedyWeightedSetCover,
 
-    /// Someone manually ordered one or more of the enablers
+    /// Someone manually ordered one or more of the measures
     #[serde(rename = "manual")]
     Manual,
 }

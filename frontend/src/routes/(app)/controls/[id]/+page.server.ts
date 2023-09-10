@@ -1,5 +1,5 @@
 import { get_control, get_control_completion } from '$lib/remote/controls';
-import { getEnablersForControl } from '$lib/remote/enablers';
+import { getMeasuresForControl } from '$lib/remote/measures';
 import { getSessionFromCookiesOrCreate } from '$lib/session_cookies';
 
 export async function load({ cookies, params }) {
@@ -10,7 +10,7 @@ export async function load({ cookies, params }) {
 
 	return {
 		control,
-		enablers: control ? await getEnablersForControl(session, control.identifier) : [],
+		measures: control ? await getMeasuresForControl(session, control.identifier) : [],
 		progress
 	};
 }

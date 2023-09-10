@@ -24,17 +24,17 @@ pub(crate) async fn get_controls(db: &Surreal<Client>) -> surrealdb::Result<Vec<
     Ok(controls)
 }
 
-pub(crate) async fn get_controls_for_enabler(
-    enabler_id: &str,
+pub(crate) async fn get_controls_for_measure(
+    measure_id: &str,
     db: &Surreal<Client>,
 ) -> surrealdb::Result<Vec<Control>> {
     let controls: Vec<Control> = db
-        .query("SELECT * FROM control WHERE id INSIDE $enabler_id->satisfies.out")
+        .query("SELECT * FROM control WHERE id INSIDE $measure_id->satisfies.out")
         .bind((
-            "enabler_id",
+            "measure_id",
             Thing {
-                id: Id::String(enabler_id.to_string()),
-                tb: "enabler".to_string(),
+                id: Id::String(measure_id.to_string()),
+                tb: "measure".to_string(),
             },
         ))
         .await?
@@ -60,7 +60,7 @@ struct _Helper {
 }
 
 /// Returns the completion of the given control, which is computed by
-/// adding the contributions of all the associated enablers.
+/// adding the contributions of all the associated measures.
 pub(crate) async fn get_control_completion(
     db: &Surreal<Client>,
     id: String,
@@ -129,7 +129,7 @@ struct _Helper3 {
     id: Thing,
     count: u64,
 }
-pub(crate) async fn get_enablers_for_control_count_batch(
+pub(crate) async fn get_measures_for_control_count_batch(
     db: &Surreal<Client>,
 ) -> surrealdb::Result<HashMap<String, u64>> {
     let controls: Vec<_Helper3> = db

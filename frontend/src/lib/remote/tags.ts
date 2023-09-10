@@ -17,10 +17,10 @@ export async function get_tags(session: Session) {
 	}
 }
 
-export async function get_tags_for_enabler(enabler_id: String, session: Session) {
+export async function get_tags_for_measure(measure_id: String, session: Session) {
 	try {
 		const tags_resp = await fetch(
-			BACKEND_URL + `/api/v1/enablers/tags_for_enabler?enabler_id=${enabler_id}`,
+			BACKEND_URL + `/api/v1/measures/tags_for_measure?measure_id=${measure_id}`,
 			{
 				headers: {
 					Authorization: `Bearer ${session.auth_token}`
@@ -30,7 +30,7 @@ export async function get_tags_for_enabler(enabler_id: String, session: Session)
 		const tag_ids: Tag[] = await tags_resp.json();
 		return tag_ids;
 	} catch (error) {
-		console.error('Error loading tags for enabler: ', error);
+		console.error('Error loading tags for measure: ', error);
 		return [];
 	}
 }
@@ -61,9 +61,9 @@ export async function get_tags_for_control_batch(
 	}
 }
 
-export async function get_tags_for_enabler_batch(session: Session): Promise<Map<string, string[]>> {
+export async function get_tags_for_measure_batch(session: Session): Promise<Map<string, string[]>> {
 	console.log('Requesting batch tags');
-	const response = await fetch(`${BACKEND_URL}/api/v1/tags/get_enabler_tag_ids_batch`, {
+	const response = await fetch(`${BACKEND_URL}/api/v1/tags/get_measure_tag_ids_batch`, {
 		headers: { Authorization: `Bearer ${session.auth_token}`, 'Content-Type': 'application/json' }
 	});
 	if (response.ok) {

@@ -5,22 +5,22 @@
 	export let data: PageData;
 	export let form: ActionData;
 
-	$: enabler = data.enabler;
+	$: measure = data.measure;
 
 	let edit_form_shown = false;
 </script>
 
 <head>
-	<title>{enabler?.title || 'Enabler details'}</title>
+	<title>{measure?.title || 'Measure details'}</title>
 </head>
 
-{#if enabler}
+{#if measure}
 	<section>
-		<h1>{enabler.title}</h1>
-		<p>{enabler.description}</p>
+		<h1>{measure.title}</h1>
+		<p>{measure.description}</p>
 		<ul>
-			<li>Progress: {enabler.progress}</li>
-			<li>Effort: {enabler.effort}</li>
+			<li>Progress: {measure.progress}</li>
+			<li>Effort: {measure.effort}</li>
 		</ul>
 		<button
 			class="btn"
@@ -32,16 +32,16 @@
 			Edit
 		</button>
 		{#if edit_form_shown}
-			<form action="?/edit_enabler" method="post">
+			<form action="?/edit_measure" method="post">
 				<label for="title">Title</label>
-				<input type="text" name="title" id="title" placeholder="title" value={enabler.title} />
+				<input type="text" name="title" id="title" placeholder="title" value={measure.title} />
 				<label for="description">Description</label>
 				<input
 					type="text"
 					name="description"
 					id="description"
 					placeholder="description"
-					value={enabler.description}
+					value={measure.description}
 				/>
 				<label for="effort">Effort</label>
 				<input
@@ -50,7 +50,7 @@
 					name="effort"
 					id="effort"
 					placeholder="effort"
-					value={enabler.effort}
+					value={measure.effort}
 				/>
 				<label for="progress">Progress</label>
 				<input
@@ -60,14 +60,14 @@
 					name="progress"
 					id="progress"
 					placeholder="progress"
-					value={enabler.progress}
+					value={measure.progress}
 				/>
-				<input hidden type="text" name="id" bind:value={enabler.identifier} />
+				<input hidden type="text" name="id" bind:value={measure.identifier} />
 
 				<button type="submit">Update</button>
 			</form>
 			{#if form?.success}
-				Enabler updated successfully
+				Measure updated successfully
 			{/if}
 			{#if form?.reason}
 				<p class="error">{form.reason}</p>
@@ -94,7 +94,7 @@
 		</div>
 	</section>
 {:else}
-	Loading enabler data
+	Loading measure data
 {/if}
 
 <style lang="scss">

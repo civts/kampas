@@ -5,7 +5,7 @@ use ts_rs::TS;
 #[derive(Debug, Clone, Serialize, TS, Deserialize)]
 #[serde(crate = "rocket::serde")]
 #[ts(export, export_to = "../frontend/src/lib/models/bindings/")]
-pub(crate) struct Enabler {
+pub(crate) struct Measure {
     pub(crate) identifier: String,
     pub(crate) title: String,
     pub(crate) description: String,
@@ -15,10 +15,10 @@ pub(crate) struct Enabler {
     pub(crate) effort: u8,
 }
 
-impl Enabler {
+impl Measure {
     pub(crate) fn new(title: &str, description: &str, effort: Option<u8>) -> Self {
         let id = generate_random_string(16);
-        Enabler {
+        Measure {
             identifier: id,
             progress: 0,
             title: title.into(),

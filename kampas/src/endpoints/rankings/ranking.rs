@@ -2,7 +2,7 @@ use crate::{
     generate_endpoint_roles,
     helpers::surrealdb::{ranking::add_ranking, tag::get_tag_control_association},
     models::{
-        enabler::Enabler,
+        measure::Measure,
         ranking::{RankOrdering, Ranking},
         role::Role,
         user::User,
@@ -50,10 +50,10 @@ pub(crate) async fn new_ranking(
     let name = form_data.name.clone();
     let minimum_coverage = form_data.minimum_coverage.clone();
     match generate_ranking(&form_data.into_inner(), db).await {
-        Ok((enablers, controls)) => {
+        Ok((measures, controls)) => {
             // Save ranking to db
             let ranking = Ranking::new(
-                enablers,
+                measures,
                 controls,
                 &user.username,
                 RankOrdering::GreedyWeightedSetCover,
@@ -138,22 +138,22 @@ async fn generate_ranking(
 ) -> Result<(Vec<String>, Vec<String>), Error> {
     // Get all the controls from the database
     let controls = get_filtered_controls(db, params).await?;
-    // Get all the enablers from the database
-    let enablers = surrealdb::enabler::get_enablers(db).await?;
+    // Get all the measures from the database
+    let measures = surrealdb::measure::get_measures(db).await?;
 
-    // Get the relation between controls and enablers
-    let enablers_for_control = surrealdb::enabler::get_enabler_control_association(db).await?;
+    // Get the relation between controls and measures
+    let measures_for_control = surrealdb::measure::get_measure_control_association(db).await?;
 
-    // Start greedy: take the enabler with the most associated controls (divided by its effort), strike out the controls
-    let (best_enablers, controls_satisfied) = minimize_cost(
+    // Start greedy: take the measure with the most associated controls (divided by its effort), strike out the controls
+    let (best_measures, controls_satisfied) = minimize_cost(
         &controls,
-        &enablers,
-        &enablers_for_control,
+        &measures,
+        &measures_for_control,
         params.minimum_coverage,
     );
 
-    let best_enablers = Vec::from_iter(best_enablers.into_iter());
-    Ok((best_enablers, controls_satisfied))
+    let best_measures = Vec::from_iter(best_measures.into_iter());
+    Ok((best_measures, controls_satisfied))
 }
 
 async fn get_filtered_controls(
@@ -203,23 +203,23 @@ async fn get_filtered_controls(
     })
 }
 
-/// Finds the best enablers to minimize the cost. This is a variant of the Weighted Set
+/// Finds the best measures to minimize the cost. This is a variant of the Weighted Set
 /// Cover problem.
 ///
-/// We solve it with a greedy algorithm, computing the cost for each enabler and always
-/// choosing the smallest one. To compute the cost, we divide the effort of the enabler
+/// We solve it with a greedy algorithm, computing the cost for each measure and always
+/// choosing the smallest one. To compute the cost, we divide the effort of the measure
 /// by the total increase in coverage it would bring. To compute the increase in
-/// coverage, we sum the one on each control the enabler covers, but only if the control
+/// coverage, we sum the one on each control the measure covers, but only if the control
 /// was not completely covered yet.
 pub(crate) fn minimize_cost(
     controls: &[Control],
-    enablers: &[Enabler],
+    measures: &[Measure],
     coverage_map: &BTreeMap<String, Vec<(String, u8)>>,
     min_coverage: u8,
 ) -> (Vec<String>, Vec<String>) {
-    let mut selected_enablers: Vec<String> = vec![];
-    let mut unused_enablers: HashSet<&str> =
-        enablers.iter().map(|m| m.identifier.as_str()).collect();
+    let mut selected_measures: Vec<String> = vec![];
+    let mut unused_measures: HashSet<&str> =
+        measures.iter().map(|m| m.identifier.as_str()).collect();
     let empty_vec = Vec::new();
 
     let mut remaining_controls: HashSet<&str> =
@@ -230,24 +230,24 @@ pub(crate) fn minimize_cost(
         .map(|c| (c.identifier.as_str(), 0))
         .collect();
 
-    let enabler_efforts = BTreeMap::from_iter(
-        enablers
+    let measure_efforts = BTreeMap::from_iter(
+        measures
             .iter()
-            .map(|enabler| (enabler.identifier.as_str(), enabler.effort)),
+            .map(|measure| (measure.identifier.as_str(), measure.effort)),
     );
 
-    // Iterate until all controls are covered, adding the best enabler every time
-    while !(remaining_controls.is_empty() || unused_enablers.is_empty()) {
+    // Iterate until all controls are covered, adding the best measure every time
+    while !(remaining_controls.is_empty() || unused_measures.is_empty()) {
         let mut min_cost = f64::MAX;
-        let mut best_enabler: Option<&str> = None;
+        let mut best_measure: Option<&str> = None;
 
-        for enabler_id in &unused_enablers {
-            // Controls that would be covered by this enabler
-            let covered_controls = coverage_map.get(*enabler_id).unwrap_or(&empty_vec);
+        for measure_id in &unused_measures {
+            // Controls that would be covered by this measure
+            let covered_controls = coverage_map.get(*measure_id).unwrap_or(&empty_vec);
 
-            let effort = *enabler_efforts
-                .get(enabler_id)
-                .expect("can get effort for enabler") as f64;
+            let effort = *measure_efforts
+                .get(measure_id)
+                .expect("can get effort for measure") as f64;
             let coverage_increase = covered_controls.iter().fold(0, |prev, c| {
                 let control_id = c.0.as_str();
                 let coverage = c.1;
@@ -258,7 +258,7 @@ pub(crate) fn minimize_cost(
                     .map(|coverage| coverage < &min_coverage)
                     .unwrap_or(false)
                 {
-                    // Add the contribution of this enabler for this control
+                    // Add the contribution of this measure for this control
                     prev + coverage
                 } else {
                     prev
@@ -272,19 +272,19 @@ pub(crate) fn minimize_cost(
                 .collect();
             let incomplete_covered = remaining_controls.intersection(&covered_ids).count();
 
-            // If this enabler has the minimum cost and helps covering some incomplete controls
+            // If this measure has the minimum cost and helps covering some incomplete controls
             if incomplete_covered > 0 && cost < min_cost {
                 min_cost = cost;
-                best_enabler = Some(enabler_id);
+                best_measure = Some(measure_id);
             }
         }
 
-        // Add the best enabler to the selected set and remove the covered controls from consideration
-        if let Some(enabler_id) = best_enabler {
-            selected_enablers.push(enabler_id.to_string());
-            unused_enablers.remove(enabler_id);
+        // Add the best measure to the selected set and remove the covered controls from consideration
+        if let Some(measure_id) = best_measure {
+            selected_measures.push(measure_id.to_string());
+            unused_measures.remove(measure_id);
 
-            let controls = &coverage_map.get(enabler_id).unwrap_or(&empty_vec);
+            let controls = &coverage_map.get(measure_id).unwrap_or(&empty_vec);
             controls.iter().for_each(|(control_id, coverage)| {
                 let prev_value = controls_coverage.get(control_id.as_str()).unwrap();
                 let new_value = prev_value + coverage;
@@ -318,5 +318,5 @@ pub(crate) fn minimize_cost(
         })
         .flatten()
         .collect();
-    (selected_enablers, covered_controls)
+    (selected_measures, covered_controls)
 }

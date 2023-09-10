@@ -1,5 +1,5 @@
 use super::Record;
-use crate::models::enabler::Enabler;
+use crate::models::measure::Measure;
 use crate::models::tag::Tag;
 use serde::{Deserialize, Serialize};
 use std::collections::{BTreeMap, HashMap, HashSet};
@@ -7,14 +7,14 @@ use surrealdb::engine::remote::ws::Client;
 use surrealdb::sql::{Id, Thing};
 use surrealdb::Surreal;
 
-pub(crate) async fn add_enabler(
-    enabler: Enabler,
+pub(crate) async fn add_measure(
+    measure: Measure,
     db: &Surreal<Client>,
 ) -> surrealdb::Result<String> {
-    // Create a new enabler with a random id
+    // Create a new measure with a random id
     let _created: Record = db
-        .create(("enabler", &enabler.identifier))
-        .content(enabler)
+        .create(("measure", &measure.identifier))
+        .content(measure)
         .await?;
     let s = match _created.id.id {
         Id::String(id_str) => id_str,
@@ -24,19 +24,19 @@ pub(crate) async fn add_enabler(
     Ok(s)
 }
 
-pub(crate) async fn get_enablers(db: &Surreal<Client>) -> surrealdb::Result<Vec<Enabler>> {
+pub(crate) async fn get_measures(db: &Surreal<Client>) -> surrealdb::Result<Vec<Measure>> {
     // Select all records
-    let enablers: Vec<Enabler> = db.select("enabler").await?;
+    let measures: Vec<Measure> = db.select("measure").await?;
 
-    Ok(enablers)
+    Ok(measures)
 }
 
-pub(crate) async fn get_enablers_for_control(
+pub(crate) async fn get_measures_for_control(
     control_id: &str,
     db: &Surreal<Client>,
-) -> surrealdb::Result<Vec<Enabler>> {
-    let enablers: Vec<Enabler> = db
-        .query("SELECT * FROM enabler WHERE id INSIDE $control_id<-satisfies.in")
+) -> surrealdb::Result<Vec<Measure>> {
+    let measures: Vec<Measure> = db
+        .query("SELECT * FROM measure WHERE id INSIDE $control_id<-satisfies.in")
         .bind((
             "control_id",
             Thing {
@@ -47,16 +47,16 @@ pub(crate) async fn get_enablers_for_control(
         .await?
         .take(0)?;
 
-    Ok(enablers)
+    Ok(measures)
 }
 
-pub(crate) async fn get_enabler(
+pub(crate) async fn get_measure(
     db: &Surreal<Client>,
     id: String,
-) -> surrealdb::Result<Option<Enabler>> {
-    let enabler: Option<Enabler> = db.select(("enabler", id)).await?;
+) -> surrealdb::Result<Option<Measure>> {
+    let measure: Option<Measure> = db.select(("measure", id)).await?;
 
-    Ok(enabler)
+    Ok(measure)
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -64,8 +64,8 @@ pub(crate) async fn get_enabler(
 struct _Helper {
     id: Thing,
 }
-pub(crate) async fn associate_enabler(
-    enabler_id: &str,
+pub(crate) async fn associate_measure(
+    measure_id: &str,
     control_id: &str,
     coverage: u8,
     db: &Surreal<Client>,
@@ -82,8 +82,8 @@ pub(crate) async fn associate_enabler(
         .bind((
             "mid",
             Thing {
-                id: Id::String(enabler_id.to_string()),
-                tb: "enabler".to_string(),
+                id: Id::String(measure_id.to_string()),
+                tb: "measure".to_string(),
             },
         ))
         .await?
@@ -91,7 +91,7 @@ pub(crate) async fn associate_enabler(
     match are_not_associated_already {
         Some(id) => Err(surrealdb::Error::Api(
             surrealdb::error::Api::InvalidRequest(
-                format!("Control and enabler are already associated in {id:?}").to_string(),
+                format!("Control and measure are already associated in {id:?}").to_string(),
             ),
         )),
         None => {
@@ -108,8 +108,8 @@ pub(crate) async fn associate_enabler(
                 .bind((
                     "mid",
                     Thing {
-                        id: Id::String(enabler_id.to_string()),
-                        tb: "enabler".to_string(),
+                        id: Id::String(measure_id.to_string()),
+                        tb: "measure".to_string(),
                     },
                 ))
                 .bind(("coverage", coverage))
@@ -122,31 +122,31 @@ pub(crate) async fn associate_enabler(
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(crate = "rocket::serde")]
 /// Dummy struct to make deserializing from the result in
-/// get_enabler_control_association easier
+/// get_measure_control_association easier
 struct Helper {
-    enabler: Thing,
+    measure: Thing,
     control: Thing,
     coverage: u8,
 }
 
-pub(crate) async fn get_enabler_control_association(
+pub(crate) async fn get_measure_control_association(
     db: &Surreal<Client>,
 ) -> surrealdb::Result<BTreeMap<String, Vec<(String, u8)>>> {
     let mut response = db
-        .query("SELECT in as enabler, out as control, coverage FROM satisfies")
+        .query("SELECT in as measure, out as control, coverage FROM satisfies")
         .await?;
     let results: Vec<Helper> = response.take(0)?;
     let mut result: BTreeMap<String, Vec<(String, u8)>> = BTreeMap::new();
     results.iter().for_each(|obj| {
-        let key = match &obj.enabler.id {
+        let key = match &obj.measure.id {
             Id::String(str) => str.into(),
             Id::Number(id) => id.to_string(),
-            _ => panic!("A enabler's id must be a string"),
+            _ => panic!("A measure's id must be a string"),
         };
         let value = match &obj.control.id {
             Id::String(str) => (str.into(), obj.coverage),
             Id::Number(id) => (id.to_string(), obj.coverage),
-            _ => panic!("A enabler's id must be a string"),
+            _ => panic!("A measure's id must be a string"),
         };
         if let Some(prev_value) = result.get_mut(&key) {
             // If the key is already present, push the value into the existing vector
@@ -168,19 +168,19 @@ struct HelperR {
     coverage: u8,
 }
 
-/// Given a enabler id, it returns a map that associates the control_ids
-/// satisfied by this enabler to their coverage
-pub(crate) async fn get_coverage_for_enabler(
-    enabler_id: &str,
+/// Given a measure id, it returns a map that associates the control_ids
+/// satisfied by this measure to their coverage
+pub(crate) async fn get_coverage_for_measure(
+    measure_id: &str,
     db: &Surreal<Client>,
 ) -> surrealdb::Result<HashMap<String, u8>> {
     let res: Vec<HelperR> = db
-        .query("SELECT coverage, out as control FROM $enabler_id->satisfies")
+        .query("SELECT coverage, out as control FROM $measure_id->satisfies")
         .bind((
-            "enabler_id",
+            "measure_id",
             Thing {
-                id: Id::String(enabler_id.to_string()),
-                tb: "enabler".to_string(),
+                id: Id::String(measure_id.to_string()),
+                tb: "measure".to_string(),
             },
         ))
         .await?
@@ -201,22 +201,22 @@ struct HelperR2 {
     ids: Vec<Thing>,
 }
 
-/// Given a enabler id, it returns a vector with the ids of the tags of
-/// all the controls this enabler satisfies
-pub(crate) async fn get_tags_for_enabler(
-    enabler_id: &str,
+/// Given a measure id, it returns a vector with the ids of the tags of
+/// all the controls this measure satisfies
+pub(crate) async fn get_tags_for_measure(
+    measure_id: &str,
     db: &Surreal<Client>,
 ) -> surrealdb::Result<Vec<Tag>> {
     let mut res: Vec<Tag> = db
-        // .query("SELECT id FROM $enablers->satisfies.out<-tags.in")
-        // .query("SELECT array::group(id) as ids FROM $enablers->satisfies.out<-tags.in.id GROUP ALL")
-        .query("SELECT * FROM $enablers->satisfies.out<-tags.in.*")
-        //You can also use a vec<Thing> and get the aggregate tags of more enablers at once
+        // .query("SELECT id FROM $measures->satisfies.out<-tags.in")
+        // .query("SELECT array::group(id) as ids FROM $measures->satisfies.out<-tags.in.id GROUP ALL")
+        .query("SELECT * FROM $measures->satisfies.out<-tags.in.*")
+        //You can also use a vec<Thing> and get the aggregate tags of more measures at once
         .bind((
-            "enablers",
+            "measures",
             Thing {
-                id: Id::String(enabler_id.to_string()),
-                tb: "enabler".to_string(),
+                id: Id::String(measure_id.to_string()),
+                tb: "measure".to_string(),
             },
         ))
         .await?
@@ -234,14 +234,14 @@ pub(crate) async fn get_tags_for_enabler(
     Ok(de_duplicated)
 }
 
-pub(crate) async fn update_enabler(
-    enabler: Enabler,
+pub(crate) async fn update_measure(
+    measure: Measure,
     db: &Surreal<Client>,
 ) -> surrealdb::Result<String> {
-    // Create a new enabler with a random id
+    // Create a new measure with a random id
     let _created: Record = db
-        .update(("enabler", &enabler.identifier))
-        .content(enabler)
+        .update(("measure", &measure.identifier))
+        .content(measure)
         .await?;
     match _created.id.id {
         Id::String(id_str) => Ok(id_str),
@@ -256,7 +256,7 @@ struct Helper3 {
     progress: u8,
 }
 
-/// Returns the progress of all enablers
+/// Returns the progress of all measures
 pub(crate) async fn get_number_controls_batch(
     db: &Surreal<Client>,
     ids: Vec<String>,
@@ -264,7 +264,7 @@ pub(crate) async fn get_number_controls_batch(
     let ids_vec: Vec<Thing> = ids
         .iter()
         .map(|id| Thing {
-            tb: "enabler".to_string(),
+            tb: "measure".to_string(),
             id: Id::String(id.to_string()),
         })
         .collect();

@@ -1,7 +1,7 @@
 <script lang="ts">
 	import type { Tag as TagI } from '$lib/models/bindings/Tag';
 	import { onMount } from 'svelte';
-	import AddEnablerButton from '../../../../components/add_enabler_button.svelte';
+	import AddMeasureButton from '../../../../components/add_measure_button.svelte';
 	import AddTagButton from '../../../../components/add_tag_button.svelte';
 	import Tag from '../../../../components/tag.svelte';
 	import type { PageData } from './$types';
@@ -88,35 +88,35 @@
 		/>
 	</div>
 	<section>
-		<h1>Associated Enablers</h1>
+		<h1>Associated Measures</h1>
 		<ul>
-			{#each data.enablers as enabler}
+			{#each data.measures as measure}
 				<li>
-					<a href="/enablers/{enabler.identifier}">
-						<span>{enabler.title} (progress: {enabler.progress}%)</span>
+					<a href="/measures/{measure.identifier}">
+						<span>{measure.title} (progress: {measure.progress}%)</span>
 					</a>
 				</li>
 			{/each}
-			<AddEnablerButton
+			<AddMeasureButton
 				on_select={async (m, coverage) => {
 					if (control != undefined) {
-						const response = await fetch('/api/enablers/associate', {
+						const response = await fetch('/api/measures/associate', {
 							method: 'POST',
 							headers: { 'Content-Type': 'application/json' },
 							body: JSON.stringify({
-								enabler_id: m.identifier,
+								measure_id: m.identifier,
 								control_id: control.identifier,
 								coverage: coverage
 							})
 						});
 
 						if (response.ok) {
-							if (data.enablers.findIndex((metr) => metr.identifier == m.identifier) == -1) {
-								data.enablers.push(m);
-								data.enablers = data.enablers;
+							if (data.measures.findIndex((metr) => metr.identifier == m.identifier) == -1) {
+								data.measures.push(m);
+								data.measures = data.measures;
 							}
 						} else {
-							alert('Associating the enabler to the control failed. Are they already associated?');
+							alert('Associating the measure to the control failed. Are they already associated?');
 						}
 						return response.ok;
 					} else {

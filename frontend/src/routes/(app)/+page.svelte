@@ -18,9 +18,9 @@
 	let average_completion = 0;
 	let controls_completed = 0;
 
-	let enablers_count = 0;
-	let enablers_completed = 0;
-	let enablers_avg_completion = 0;
+	let measures_count = 0;
+	let measures_completed = 0;
+	let measures_avg_completion = 0;
 
 	let sortedColumn = 'title';
 	let sortDirection = 1;
@@ -28,8 +28,8 @@
 
 	let sortedControlsColumn = 'progress';
 	let sortControlsDirection = 1;
-	let sortedEnablers = data.enablers;
-	updateEnablers();
+	let sortedMeasures = data.measures;
+	updateMeasures();
 	updateControls();
 
 	async function addTag(tag: TagI) {
@@ -37,7 +37,7 @@
 			selected_tags.push(tag);
 			selected_tags = selected_tags;
 			selected_tags.sort((a, b) => a.name.localeCompare(b.name));
-			updateEnablers();
+			updateMeasures();
 			updateControls();
 		}
 		return true;
@@ -48,7 +48,7 @@
 		if (index != -1) {
 			selected_tags.splice(index, 1);
 			selected_tags = selected_tags;
-			updateEnablers();
+			updateMeasures();
 			updateControls();
 		}
 	}
@@ -97,9 +97,9 @@
 		sorted_controls = sorted_controls.sort((a, b) => {
 			if (column == 'title') {
 				return a.title.localeCompare(b.title) * sortControlsDirection;
-			} else if (column === 'enablers') {
-				const na = data.number_of_enablers_per_control.get(a.identifier) ?? 0;
-				const nb = data.number_of_enablers_per_control.get(b.identifier) ?? 0;
+			} else if (column === 'measures') {
+				const na = data.number_of_measures_per_control.get(a.identifier) ?? 0;
+				const nb = data.number_of_measures_per_control.get(b.identifier) ?? 0;
 				const cmp = na - nb;
 				return cmp * sortControlsDirection;
 			} else if (column === 'controlprogress') {
@@ -112,31 +112,31 @@
 		});
 	}
 
-	function updateEnablers() {
-		sortedEnablers = data.enablers.filter((enabler) => {
-			let s = new Set(data.tags_for_enabler.get(enabler.identifier) ?? []);
+	function updateMeasures() {
+		sortedMeasures = data.measures.filter((measure) => {
+			let s = new Set(data.tags_for_measure.get(measure.identifier) ?? []);
 			return selected_tags.every((t) => s.has(t.identifier));
 		});
-		updateEnablersStats();
+		updateMeasuresStats();
 	}
 
-	function updateEnablersStats() {
-		enablers_count = sortedEnablers.length;
-		const enablers_sum = sortedEnablers.reduce((total, enabler) => {
-			return total.valueOf() + enabler.progress;
+	function updateMeasuresStats() {
+		measures_count = sortedMeasures.length;
+		const measures_sum = sortedMeasures.reduce((total, measure) => {
+			return total.valueOf() + measure.progress;
 		}, 0);
-		if (enablers_count != 0) {
-			enablers_avg_completion = enablers_sum.valueOf() / enablers_count;
+		if (measures_count != 0) {
+			measures_avg_completion = measures_sum.valueOf() / measures_count;
 		} else {
-			enablers_avg_completion = 0;
+			measures_avg_completion = 0;
 		}
 
-		enablers_completed = sortedEnablers.filter((m) => {
+		measures_completed = sortedMeasures.filter((m) => {
 			return m.progress >= 99.99999999;
 		}).length;
 	}
 
-	function sortEnablersTable(column: string) {
+	function sortMeasuresTable(column: string) {
 		if (sortedColumn === column) {
 			sortDirection *= -1;
 		} else {
@@ -145,18 +145,18 @@
 		}
 
 		if (column === 'title') {
-			sortedEnablers.sort((a, b) => a.title.localeCompare(b.title) * sortDirection);
+			sortedMeasures.sort((a, b) => a.title.localeCompare(b.title) * sortDirection);
 		} else if (column === 'progress') {
-			sortedEnablers.sort((a, b) => (a.progress - b.progress) * sortDirection);
+			sortedMeasures.sort((a, b) => (a.progress - b.progress) * sortDirection);
 		} else if (column === 'controls') {
-			sortedEnablers.sort(
+			sortedMeasures.sort(
 				(a, b) =>
-					((data.number_of_controls_per_enabler.get(a.identifier) || 0) -
-						(data.number_of_controls_per_enabler.get(b.identifier) || 0)) *
+					((data.number_of_controls_per_measure.get(a.identifier) || 0) -
+						(data.number_of_controls_per_measure.get(b.identifier) || 0)) *
 					sortDirection
 			);
 		}
-		sortedEnablers = sortedEnablers;
+		sortedMeasures = sortedMeasures;
 	}
 </script>
 
@@ -210,9 +210,9 @@
 	</section>
 
 	<section>
-		<h1>Enablers</h1>
+		<h1>Measures</h1>
 		<p>
-			The company has {enablers_count} enablers
+			The company has {measures_count} measures
 			{#if selected_tags.length > 0}
 				with the selected tags
 			{/if}
@@ -221,56 +221,56 @@
 		<div class="row">
 			<div>
 				<RoundGauge
-					value={enablers_completed}
-					max_value={enablers_count}
+					value={measures_completed}
+					max_value={measures_count}
 					color="#9ff"
-					text={`${enablers_completed} / ${enablers_count}`}
+					text={`${measures_completed} / ${measures_count}`}
 				/>
-				<p>{enablers_completed} of these have been completed</p>
+				<p>{measures_completed} of these have been completed</p>
 			</div>
 
 			<div>
-				<RoundGauge value={enablers_avg_completion} percent={true} color="#99f" />
-				<p>On average, they are {Math.round(enablers_avg_completion)}% complete</p>
+				<RoundGauge value={measures_avg_completion} percent={true} color="#99f" />
+				<p>On average, they are {Math.round(measures_avg_completion)}% complete</p>
 			</div>
 
-			{#if enablers_count > 1}
+			{#if measures_count > 1}
 				<div>
 					<div class="barchart">
-						<BarChart data={sortedEnablers.map((m) => m.progress)} />
+						<BarChart data={sortedMeasures.map((m) => m.progress)} />
 					</div>
 					<p>Here is the distribution of how complete they are</p>
 				</div>
 			{/if}
 		</div>
 
-		{#if sortedEnablers.length > 0}
+		{#if sortedMeasures.length > 0}
 			<table cellspacing="0">
 				<tr>
-					<th on:click={() => sortEnablersTable('title')}>
-						Enabler title
+					<th on:click={() => sortMeasuresTable('title')}>
+						Measure title
 						{#if sortedColumn === 'title'}
 							<span class={sortDirection === 1 ? 'arrow down' : 'arrow up'} />
 						{/if}
 					</th>
-					<th on:click={() => sortEnablersTable('progress')}>
+					<th on:click={() => sortMeasuresTable('progress')}>
 						Progress
 						{#if sortedColumn === 'progress'}
 							<span class={sortDirection === 1 ? 'arrow down' : 'arrow up'} />
 						{/if}
 					</th>
-					<th on:click={() => sortEnablersTable('controls')}>
+					<th on:click={() => sortMeasuresTable('controls')}>
 						# of associated controls
 						{#if sortedColumn === 'controls'}
 							<span class={sortDirection === 1 ? 'arrow down' : 'arrow up'} />
 						{/if}
 					</th>
 				</tr>
-				{#each sortedEnablers as enabler}
+				{#each sortedMeasures as measure}
 					<tr>
-						<td><a href="/enablers/{enabler.identifier}">{enabler.title}</a></td>
-						<td>{enabler.progress}</td>
-						<td>{data.number_of_controls_per_enabler.get(enabler.identifier)}</td>
+						<td><a href="/measures/{measure.identifier}">{measure.title}</a></td>
+						<td>{measure.progress}</td>
+						<td>{data.number_of_controls_per_measure.get(measure.identifier)}</td>
 					</tr>
 				{/each}
 			</table>
@@ -279,7 +279,7 @@
 
 	{#if sorted_controls.length > 0}
 		<section>
-			<h1>Controls and Enablers</h1>
+			<h1>Controls and Measures</h1>
 			<table cellspacing="0">
 				<tr>
 					<th on:click={() => sortControlsTable('title')}>
@@ -288,9 +288,9 @@
 							<span class={sortControlsDirection === 1 ? 'arrow down' : 'arrow up'} />
 						{/if}
 					</th>
-					<th on:click={() => sortControlsTable('enablers')}>
-						# of associated enablers
-						{#if sortedControlsColumn === 'enablers'}
+					<th on:click={() => sortControlsTable('measures')}>
+						# of associated measures
+						{#if sortedControlsColumn === 'measures'}
 							<span class={sortControlsDirection === 1 ? 'arrow down' : 'arrow up'} />
 						{/if}
 					</th>
@@ -307,7 +307,7 @@
 							<a href="/controls/{control.identifier}">{control.title}</a>
 						</td>
 						<td>
-							{data.number_of_enablers_per_control.get(control.identifier) ?? 0}
+							{data.number_of_measures_per_control.get(control.identifier) ?? 0}
 						</td>
 						<td>
 							{(Math.round((data.completion.get(control.identifier) || 0) * 100) / 100).toFixed(2)}%

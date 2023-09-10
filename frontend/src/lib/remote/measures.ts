@@ -1,33 +1,33 @@
 import { BACKEND_URL } from '$env/static/private';
-import type { Enabler } from '$lib/models/bindings/Enabler';
+import type { Measure } from '$lib/models/bindings/Measure';
 
-export async function getEnablersForControl(
+export async function getMeasuresForControl(
 	session: Session,
 	control_id: string
-): Promise<Enabler[]> {
-	const response = await fetch(`${BACKEND_URL}/api/v1/enablers?control_id=${control_id}`, {
+): Promise<Measure[]> {
+	const response = await fetch(`${BACKEND_URL}/api/v1/measures?control_id=${control_id}`, {
 		headers: { Authorization: `Bearer ${session.auth_token}` }
 	});
 	if (response.ok) {
-		const data: Enabler[] = await response.json();
+		const data: Measure[] = await response.json();
 		return data;
 	} else {
 		return [];
 	}
 }
 
-export async function get_control_associated_to_enabler_batch(
+export async function get_control_associated_to_measure_batch(
 	session: Session,
-	enabler_ids: String[]
+	measure_ids: String[]
 ): Promise<number[]> {
 	try {
-		const controls_resp = await fetch(BACKEND_URL + '/api/v1/enablers/get_number_controls_batch', {
+		const controls_resp = await fetch(BACKEND_URL + '/api/v1/measures/get_number_controls_batch', {
 			method: 'POST',
 			headers: {
 				Authorization: `Bearer ${session.auth_token}`,
 				'Content-Type': 'application/json'
 			},
-			body: JSON.stringify(enabler_ids)
+			body: JSON.stringify(measure_ids)
 		});
 
 		let completion: number[] = await controls_resp.json();
@@ -38,37 +38,37 @@ export async function get_control_associated_to_enabler_batch(
 	}
 }
 
-export async function getEnablers(session: Session): Promise<Enabler[]> {
-	const response = await fetch(`${BACKEND_URL}/api/v1/enablers`, {
+export async function getMeasures(session: Session): Promise<Measure[]> {
+	const response = await fetch(`${BACKEND_URL}/api/v1/measures`, {
 		headers: { Authorization: `Bearer ${session.auth_token}` }
 	});
 	if (response.ok) {
-		const data: Enabler[] = await response.json();
+		const data: Measure[] = await response.json();
 		return data;
 	} else {
 		return [];
 	}
 }
 
-export async function getEnabler(
+export async function getMeasure(
 	session: Session,
-	enabler_id: string
-): Promise<Enabler | undefined> {
-	const response = await fetch(`${BACKEND_URL}/api/v1/enablers/${enabler_id}`, {
+	measure_id: string
+): Promise<Measure | undefined> {
+	const response = await fetch(`${BACKEND_URL}/api/v1/measures/${measure_id}`, {
 		headers: { Authorization: `Bearer ${session.auth_token}` }
 	});
 	if (response.ok) {
-		const data: Enabler = await response.json();
+		const data: Measure = await response.json();
 		return data;
 	} else {
 		return undefined;
 	}
 }
 
-export async function get_coverage_for_enabler(enabler_id: String, session: Session) {
+export async function get_coverage_for_measure(measure_id: String, session: Session) {
 	try {
 		const coverage_resp = await fetch(
-			BACKEND_URL + `/api/v1/enablers/coverage_for_enabler?enabler_id=${enabler_id}`,
+			BACKEND_URL + `/api/v1/measures/coverage_for_measure?measure_id=${measure_id}`,
 			{
 				headers: {
 					Authorization: `Bearer ${session.auth_token}`

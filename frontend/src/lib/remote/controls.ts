@@ -33,9 +33,9 @@ export async function get_control(session: Session, id: String) {
 	}
 }
 
-export async function get_controls_for_enabler(enabler_id: String, session: Session) {
+export async function get_controls_for_measure(measure_id: String, session: Session) {
 	try {
-		const controls_resp = await fetch(BACKEND_URL + `/api/v1/controls?enabler_id=${enabler_id}`, {
+		const controls_resp = await fetch(BACKEND_URL + `/api/v1/controls?measure_id=${measure_id}`, {
 			headers: {
 				Authorization: `Bearer ${session.auth_token}`
 			}
@@ -93,11 +93,11 @@ export async function get_control_completion_batch(
 	}
 }
 
-export async function get_number_of_enablers_per_control_batch(
+export async function get_number_of_measures_per_control_batch(
 	session: Session
 ): Promise<Map<string, number>> {
 	try {
-		const controls_resp = await fetch(BACKEND_URL + '/api/v1/controls/get_enablers_count_batch', {
+		const controls_resp = await fetch(BACKEND_URL + '/api/v1/controls/get_measures_count_batch', {
 			headers: {
 				Authorization: `Bearer ${session.auth_token}`
 			}

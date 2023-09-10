@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { Control } from '$lib/models/bindings/Control';
-	import type { Enabler } from '$lib/models/bindings/Enabler';
+	import type { Measure } from '$lib/models/bindings/Measure';
 	import type { Tag as TagI } from '$lib/models/bindings/Tag';
 	import AddTagButton from '../../../../components/add_tag_button.svelte';
 	import Tag from '../../../../components/tag.svelte';
@@ -20,7 +20,7 @@
 	}
 
 	const filter_by_tag = (
-		m: Control | Enabler | undefined,
+		m: Control | Measure | undefined,
 		tags: Map<String, TagI[]>,
 		filter_tags: TagI[],
 		any_tag: boolean
@@ -36,27 +36,27 @@
 			return tags_for_this?.find((t) => t.identifier == tag.identifier) != undefined;
 		};
 		if (any_tag) {
-			// Show the enablers that have at least one of the tags
+			// Show the measures that have at least one of the tags
 			const matching_tag = filter_tags.find(sameTag);
 			return matching_tag != undefined;
 		} else {
-			// Show only the enablers that have all the tags
+			// Show only the measures that have all the tags
 			const unmatching_tag = filter_tags.find((tag) => !sameTag(tag));
 			return unmatching_tag == undefined;
 		}
 	};
 
-	$: filtered_enablers =
-		data.enablers.filter((t) => filter_by_tag(t, data.enablers_tags, filter_tags, any_tag)) ?? [];
+	$: filtered_measures =
+		data.measures.filter((t) => filter_by_tag(t, data.measures_tags, filter_tags, any_tag)) ?? [];
 
 	$: filtered_controls = data.controls.filter((c) =>
 		filter_by_tag(c, data.control_tags, filter_tags, any_tag)
 	);
 
 	$: average_progress =
-		filtered_enablers.reduce((prev, m) => {
+		filtered_measures.reduce((prev, m) => {
 			return prev + (m?.progress ?? 0);
-		}, 0) / filtered_enablers.length;
+		}, 0) / filtered_measures.length;
 
 	$: rounded_average_progress = (Math.round(average_progress * 100) / 100).toFixed(2);
 </script>
@@ -101,13 +101,13 @@
 			</div>
 		</section>
 		<section>
-			<h2>Enablers</h2>
-			{#if filtered_enablers.length > 0}
-				<p>Average progress of these enablers: {rounded_average_progress}%</p>
+			<h2>Measures</h2>
+			{#if filtered_measures.length > 0}
+				<p>Average progress of these measures: {rounded_average_progress}%</p>
 				<ol>
-					{#each filtered_enablers as m}
+					{#each filtered_measures as m}
 						<li>
-							<a href="/enablers/{m?.identifier}">{m?.title}</a> (progress: {m?.progress}%)
+							<a href="/measures/{m?.identifier}">{m?.title}</a> (progress: {m?.progress}%)
 						</li>
 					{/each}
 				</ol>{:else}
@@ -118,8 +118,8 @@
 			<h2>Controls</h2>
 			{#if filtered_controls.length > 0}
 				<p>
-					If all the previous enablers are completed, the following controls will be completed as
-					well. <br /> Most likely, other controls will be improved too when implementing the enablers.
+					If all the previous measures are completed, the following controls will be completed as
+					well. <br /> Most likely, other controls will be improved too when implementing the measures.
 				</p>
 
 				<ol>

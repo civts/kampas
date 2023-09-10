@@ -2,16 +2,16 @@ import { BACKEND_URL } from '$env/static/private';
 import { getSessionFromCookiesOrCreate } from '$lib/session_cookies';
 import type { RequestHandler } from '@sveltejs/kit';
 
-const associateEnablerToControl: RequestHandler = async ({ request, cookies }) => {
+const associateMeasureToControl: RequestHandler = async ({ request, cookies }) => {
 	const session = await getSessionFromCookiesOrCreate(cookies);
 	const data = await request.json();
 
 	const formData = new FormData();
-	formData.set('enabler_id', data.enabler_id);
+	formData.set('measure_id', data.measure_id);
 	formData.set('control_id', data.control_id);
 	formData.set('coverage', data.coverage);
 
-	const response = await fetch(`${BACKEND_URL}/api/v1/enablers/associate`, {
+	const response = await fetch(`${BACKEND_URL}/api/v1/measures/associate`, {
 		method: 'POST',
 		headers: { Authorization: `Bearer ${session.auth_token}` },
 		body: formData
@@ -23,4 +23,4 @@ const associateEnablerToControl: RequestHandler = async ({ request, cookies }) =
 	}
 };
 
-export const POST = associateEnablerToControl;
+export const POST = associateMeasureToControl;

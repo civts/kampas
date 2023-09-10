@@ -1,21 +1,21 @@
 <script lang="ts">
-	import type { Enabler } from '$lib/models/bindings/Enabler';
+	import type { Measure } from '$lib/models/bindings/Measure';
 	import { onMount } from 'svelte';
 
 	/**
-	 * The function to run when a enabler is selected.
+	 * The function to run when a measure is selected.
 	 * It shall return true to indicate that the overlay can be closed.
 	 * False to leave it open.
 	 */
-	export let on_select: (m: Enabler, coverage: number) => Promise<boolean>;
+	export let on_select: (m: Measure, coverage: number) => Promise<boolean>;
 
 	let showOverlay = false;
-	let enablers: Enabler[] = [];
+	let measures: Measure[] = [];
 
-	async function fetchEnablers() {
-		const response = await fetch('/api/enablers');
-		enablers = await response.json();
-		enablers.sort((a, b) => {
+	async function fetchMeasures() {
+		const response = await fetch('/api/measures');
+		measures = await response.json();
+		measures.sort((a, b) => {
 			if (a.title.toLowerCase() > b.title.toLowerCase()) {
 				return 1;
 			}
@@ -23,16 +23,16 @@
 		});
 	}
 
-	onMount(fetchEnablers);
+	onMount(fetchMeasures);
 </script>
 
-<button type="button" on:click={() => (showOverlay = true)}>Add enabler</button>
+<button type="button" on:click={() => (showOverlay = true)}>Add measure</button>
 
 {#if showOverlay}
 	<div class="overlay" on:click={() => (showOverlay = false)}>
 		<div class="overlay-content" on:click={(e) => e.stopPropagation()}>
 			<div class="grid">
-				{#each enablers as enabler (enabler.identifier)}
+				{#each measures as measure (measure.identifier)}
 					<div
 						on:click={async () => {
 							let res = prompt('what is the coverage?');
@@ -42,7 +42,7 @@
 								}
 								let cov = Number.parseInt(res);
 								if (cov > 0 && cov <= 100) {
-									if (await on_select(enabler, cov)) {
+									if (await on_select(measure, cov)) {
 										showOverlay = false;
 										return;
 									}
@@ -52,11 +52,11 @@
 							}
 						}}
 					>
-						{enabler.title}
+						{measure.title}
 					</div>
 				{/each}
 			</div>
-			<p>You can create a new enabler <a href="/new_enabler">here</a></p>
+			<p>You can create a new measure <a href="/new_measure">here</a></p>
 		</div>
 	</div>
 {/if}
