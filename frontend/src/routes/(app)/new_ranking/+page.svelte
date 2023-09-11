@@ -10,6 +10,7 @@
 	let alltags: boolean = false;
 	let min_coverage = 100;
 	let filter_by_tag: boolean = true;
+	let submitted = false;
 
 	let selected_tags: TagI[] = [];
 
@@ -47,9 +48,16 @@
 <section>
 	<h1>Add a new ranking</h1>
 	<div class="createform">
-		<form action="?/add" method="post" use:enhance>
+		<form
+			action="?/add"
+			method="post"
+			on:submit={(_) => {
+				submitted = true;
+			}}
+			use:enhance
+		>
 			<label for="name">Ranking name</label>
-			<input type="text" name="name" id="name" placeholder="name" />
+			<input type="text" name="name" id="name" placeholder="name" required />
 			<label for="minimum_coverage">Minimum coverage (for each control)</label>
 			<input
 				type="number"
@@ -59,6 +67,7 @@
 				id="minimum_coverage"
 				bind:value={min_coverage}
 				placeholder="Mimimum coverage for each control"
+				required
 			/>
 			<div class="row">
 				<input type="checkbox" name="filter_by_tag" class="toggle" bind:checked={filter_by_tag} />
@@ -89,7 +98,11 @@
 					</span>
 				</div>
 			{/if}
-			<button type="submit">Okay</button>
+			{#if submitted}
+				<button disabled type="submit">Okay</button>
+			{:else}
+				<button type="submit">Okay</button>
+			{/if}
 		</form>
 		{#if form?.reason}
 			<p class="error">Failed: {form?.reason}</p>
