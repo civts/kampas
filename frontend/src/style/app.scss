@@ -77,6 +77,7 @@ a {
 
 input.toggle {
 	$h: 2em;
+	cursor: pointer;
 	width: 2 * $h;
 	height: $h;
 	margin: 0;

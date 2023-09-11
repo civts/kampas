@@ -316,6 +316,14 @@
 				{/each}
 			</table>
 		</section>
+
+		<section>
+			To see a graph view of the measure/controls relations, go <a
+				data-sveltekit-preload-code="off"
+				data-sveltekit-preload-data="off"
+				href="/graph">here</a
+			>
+		</section>
 	{/if}
 {:else}
 	<center>Sry, who are you?</center>

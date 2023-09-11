@@ -8,7 +8,8 @@ use endpoints::{
     controls::{
         controls::{
             add_control, get_control, get_control_completion, get_control_completion_b,
-            get_controls, get_controls_for_measure, get_measures_for_control_count_batch,
+            get_controls, get_controls_for_measure, get_measure_control_association_batch,
+            get_measures_for_control_count_batch,
         },
         upload::upload,
     },
@@ -45,7 +46,8 @@ async fn rocket() -> _ {
                 get_controls_for_measure,
                 get_control_completion,
                 get_control_completion_b,
-                get_measures_for_control_count_batch
+                get_measures_for_control_count_batch,
+                get_measure_control_association_batch
             ],
         )
         .mount(

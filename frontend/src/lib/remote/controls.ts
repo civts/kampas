@@ -110,3 +110,26 @@ export async function get_number_of_measures_per_control_batch(
 		return new Map();
 	}
 }
+
+export async function get_measure_control_association_batch(
+	session: Session
+): Promise<Map<string, [String, Number][]>> {
+	try {
+		const controls_resp = await fetch(
+			BACKEND_URL + '/api/v1/controls/get_measure_control_association_batch',
+			{
+				headers: {
+					Authorization: `Bearer ${session.auth_token}`
+				}
+			}
+		);
+
+		let completion: Map<string, [String, Number][]> = new Map(
+			Object.entries(await controls_resp.json())
+		);
+		return completion;
+	} catch (error) {
+		console.error('Error loading completion for control: ', error);
+		return new Map();
+	}
+}

@@ -1,10 +1,13 @@
 use crate::{
     generate_endpoint_roles,
-    helpers::surrealdb::control::{
-        add_control as add_controll, get_control as get_controll,
-        get_control_completion as get_control_completionn, get_control_completion_batch,
-        get_controls as get_controlss, get_controls_for_measure as get_controls_for_measurec,
-        get_measures_for_control_count_batch as get_measures_for_control_count_batchh,
+    helpers::surrealdb::{
+        control::{
+            add_control as add_controll, get_control as get_controll,
+            get_control_completion as get_control_completionn, get_control_completion_batch,
+            get_controls as get_controlss, get_controls_for_measure as get_controls_for_measurec,
+            get_measures_for_control_count_batch as get_measures_for_control_count_batchh,
+        },
+        measure::get_measure_control_association,
     },
     models::{control::Control, role::Role, user::User},
 };
@@ -194,6 +197,37 @@ pub(crate) async fn get_measures_for_control_count_batch(
         Err(err) => {
             println!(
                 "Something went wrong getting the number of associated measures (batch): {}",
+                err
+            );
+            status::Custom(
+                Status::InternalServerError,
+                Status::InternalServerError.reason_lossy().to_string(),
+            )
+        }
+    }
+}
+
+generate_endpoint_roles!(GetControlsMeasuresRole, { Role::GetMeasures, Role::GetControls });
+#[get("/get_measure_control_association_batch")]
+pub(crate) async fn get_measure_control_association_batch(
+    user: User,
+    _required_roles: GetControlsMeasuresRole,
+    db: &State<Surreal<Client>>,
+) -> status::Custom<String> {
+    println!(
+        "{} is requesting the measure-control association (batch)",
+        user.username
+    );
+    let controls_res = get_measure_control_association(db).await;
+    match controls_res {
+        Ok(data) => status::Custom(
+            Status::Ok,
+            serde_json::to_string(&data)
+                .expect("can serialize the measure-control association (batch) to JSON"),
+        ),
+        Err(err) => {
+            println!(
+                "Something went wrong getting the measure-control association (batch): {}",
                 err
             );
             status::Custom(
