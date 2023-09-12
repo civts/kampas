@@ -311,7 +311,7 @@ pub(crate) fn minimize_cost(
         .iter()
         .map(|(id, coverage)| {
             if coverage >= &min_coverage {
-                return Some(id.clone().to_owned());
+                return Some(id.to_string());
             } else {
                 return None;
             }

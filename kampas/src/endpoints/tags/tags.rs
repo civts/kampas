@@ -58,7 +58,7 @@ pub(crate) async fn get_tags(
 #[get("/?<control_id>")]
 /// Get all the tags for a control
 pub(crate) async fn get_tags_for_control(
-    _r: GetTagsRole,
+    _required_roles: GetTagsRole,
     control_id: &str,
     db: &State<Surreal<Client>>,
 ) -> status::Custom<String> {

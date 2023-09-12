@@ -6,11 +6,16 @@ use super::Record;
 
 pub(crate) async fn add_user(user: User, db: &Surreal<Client>) -> surrealdb::Result<()> {
     // Create a new user with a random id
-    let _created: Record = db
+    let created_opt: Option<Record> = db
         .create(("user", user.username.clone()))
-        .content(user)
+        .content(&user)
         .await?;
-    Ok(())
+    match created_opt {
+        Some(_) => Ok(()),
+        None => Err(surrealdb::Error::Api(surrealdb::error::Api::InternalError(
+            format!("User named {} was not created", &user.username).to_string(),
+        ))),
+    }
 }
 
 pub(crate) async fn does_user_exist(

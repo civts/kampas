@@ -9,8 +9,13 @@ use surrealdb::{
 };
 
 pub(crate) async fn add_tag(tag: Tag, db: &Surreal<Client>) -> surrealdb::Result<String> {
-    let record: Record = db.create(("tag", &tag.identifier)).content(tag).await?;
-    Ok(record.id.to_string())
+    let created_opt: Option<Record> = db.create(("tag", &tag.identifier)).content(&tag).await?;
+    match created_opt {
+        Some(record) => Ok(record.id.to_string()),
+        None => Err(surrealdb::Error::Api(surrealdb::error::Api::InternalError(
+            format!("Tag with id {} was not created", &tag.identifier).to_string(),
+        ))),
+    }
 }
 
 pub(crate) async fn get_tags(db: &Surreal<Client>) -> surrealdb::Result<Vec<Tag>> {

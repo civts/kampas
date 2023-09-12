@@ -34,7 +34,9 @@ pub(crate) fn working() -> &'static str {
 
 #[launch]
 async fn rocket() -> _ {
-    let client = get_client().await.unwrap();
+    let client = get_client()
+        .await
+        .unwrap_or_else(|err| panic!("Error in the databse connection: {err:?}"));
     rocket::build()
         .mount(
             "/api/v1/controls",

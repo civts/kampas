@@ -9,14 +9,19 @@ pub(crate) async fn add_ranking(
     db: &Surreal<Client>,
 ) -> surrealdb::Result<String> {
     // Create a new ranking with a random id
-    let _created: Record = db
+    let created_opt: Option<Record> = db
         .create(("ranking", &ranking.identifier))
-        .content(ranking)
+        .content(&ranking)
         .await?;
-    match _created.id.id {
-        Id::String(id_str) => Ok(id_str),
-        Id::Number(id) => Ok(id.to_string()),
-        _ => panic!("We don't do that here. We shall only use String IDs"),
+    match created_opt {
+        Some(r) => match r.id.id {
+            Id::String(id_str) => Ok(id_str),
+            Id::Number(id) => Ok(id.to_string()),
+            _ => panic!("We don't do that here. We shall only use String IDs"),
+        },
+        None => Err(surrealdb::Error::Api(surrealdb::error::Api::InternalError(
+            format!("Ranking with id {} was not created", &ranking.identifier).to_string(),
+        ))),
     }
 }
 

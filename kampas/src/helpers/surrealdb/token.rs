@@ -3,12 +3,17 @@ use crate::models::token::AuthToken;
 use surrealdb::{engine::remote::ws::Client, Surreal};
 
 pub(crate) async fn add_token(token: &AuthToken, db: &Surreal<Client>) -> surrealdb::Result<()> {
-    let _deleted = db.delete(("token", &token.username)).await?;
-    let _created: Record = db
+    let _deleted: Option<AuthToken> = db.delete(("token", &token.username)).await?;
+    let created_opt: Option<Record> = db
         .create(("token", &token.username))
         .content(&token)
         .await?;
-    Ok(())
+    match created_opt {
+        Some(_) => Ok(()),
+        None => Err(surrealdb::Error::Api(surrealdb::error::Api::InternalError(
+            format!("Token for {} was not created", &token.username).to_string(),
+        ))),
+    }
 }
 
 pub(crate) async fn get_token_for_user(

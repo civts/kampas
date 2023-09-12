@@ -12,16 +12,24 @@ pub(crate) async fn add_measure(
     db: &Surreal<Client>,
 ) -> surrealdb::Result<String> {
     // Create a new measure with a random id
-    let _created: Record = db
+    let created_opt: Option<Record> = db
         .create(("measure", &measure.identifier))
-        .content(measure)
+        .content(&measure)
         .await?;
-    let s = match _created.id.id {
-        Id::String(id_str) => id_str,
-        Id::Number(id) => id.to_string(),
-        _ => panic!("We don't do that here. We shall only use String IDs"),
-    };
-    Ok(s)
+
+    match created_opt {
+        Some(r) => {
+            let s = match r.id.id {
+                Id::String(id_str) => id_str,
+                Id::Number(id) => id.to_string(),
+                _ => panic!("We don't do that here. We shall only use String IDs"),
+            };
+            Ok(s)
+        }
+        None => Err(surrealdb::Error::Api(surrealdb::error::Api::InternalError(
+            format!("Measure with id {} was not created", &measure.identifier).to_string(),
+        ))),
+    }
 }
 
 pub(crate) async fn get_measures(db: &Surreal<Client>) -> surrealdb::Result<Vec<Measure>> {
@@ -239,14 +247,19 @@ pub(crate) async fn update_measure(
     db: &Surreal<Client>,
 ) -> surrealdb::Result<String> {
     // Create a new measure with a random id
-    let _created: Record = db
+    let updated_opt: Option<Record> = db
         .update(("measure", &measure.identifier))
-        .content(measure)
+        .content(&measure)
         .await?;
-    match _created.id.id {
-        Id::String(id_str) => Ok(id_str),
-        Id::Number(id) => Ok(id.to_string()),
-        _ => panic!("We don't do that here. We shall only use String IDs"),
+    match updated_opt {
+        Some(u) => match u.id.id {
+            Id::String(id_str) => Ok(id_str),
+            Id::Number(id) => Ok(id.to_string()),
+            _ => panic!("We don't do that here. We shall only use String IDs"),
+        },
+        None => Err(surrealdb::Error::Api(surrealdb::error::Api::InternalError(
+            format!("Measure with id {} was not updated", &measure.identifier).to_string(),
+        ))),
     }
 }
 

@@ -6,7 +6,8 @@ services:
       - 8002:8000
     volumes:
       - ./data:/data
-    image: surrealdb/surrealdb:latest
+    # Last sha256: cd5a9abcc4df5d816d6d141da99cd78087457670426e75c6faf8cb3cb42f467c, Sept 12 2023
+    image: surrealdb/surrealdb:1.0.0-beta.11
     command: start --log trace --user root --pass root file:/data/kampas.db
   surrealist:
     container_name: surrealist

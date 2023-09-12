@@ -10,11 +10,16 @@ use super::Record;
 
 pub(crate) async fn add_control(control: Control, db: &Surreal<Client>) -> surrealdb::Result<()> {
     // Create a new control with a random id
-    let _created: Record = db
+    let created_opt: Option<Record> = db
         .create(("control", &control.identifier))
-        .content(control)
+        .content(&control)
         .await?;
-    Ok(())
+    match created_opt {
+        Some(_) => Ok(()),
+        None => Err(surrealdb::Error::Api(surrealdb::error::Api::InternalError(
+            format!("Control with id {} was not created", &control.identifier).to_string(),
+        ))),
+    }
 }
 
 pub(crate) async fn get_controls(db: &Surreal<Client>) -> surrealdb::Result<Vec<Control>> {
