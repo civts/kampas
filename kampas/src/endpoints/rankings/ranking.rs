@@ -248,7 +248,7 @@ pub(crate) fn minimize_cost(
             let effort = *measure_efforts
                 .get(measure_id)
                 .expect("can get effort for measure") as f64;
-            let coverage_increase = covered_controls.iter().fold(0, |prev, c| {
+            let coverage_increase = covered_controls.iter().fold(0u64, |prev, c| {
                 let control_id = c.0.as_str();
                 let coverage = c.1;
                 if
@@ -259,12 +259,16 @@ pub(crate) fn minimize_cost(
                     .unwrap_or(false)
                 {
                     // Add the contribution of this measure for this control
-                    prev + coverage
+                    prev + (coverage as u64)
                 } else {
                     prev
                 }
-            }) as f64;
-            let cost = effort / coverage_increase;
+            });
+            let cost = if coverage_increase != 0 {
+                effort / (coverage_increase as f64)
+            } else {
+                f64::MAX
+            };
 
             let covered_ids: HashSet<&str> = covered_controls
                 .iter()
