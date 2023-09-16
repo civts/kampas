@@ -2,8 +2,8 @@ use std::io;
 
 #[derive(thiserror::Error, Debug)]
 pub(crate) enum Error {
-    // #[error("Value not of type '{0}'")]
-    // XValueNotOfType(&'static str),
+    #[error("Connection error: '{0}'")]
+    ConnectionError(String),
 
     #[error(transparent)]
     Surreal(#[from] surrealdb::Error),

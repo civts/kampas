@@ -19,7 +19,7 @@ execute_with_label() {
 
 execute_with_label "surreal" "cd kampas; docker compose down; docker compose up" "${colors["yellow"]}"
 execute_with_label "redis" "cd frontend; docker compose down; docker compose up" "${colors["green"]}"
-execute_with_label "backend" "sleep 4;source ./kampas/.env; cargo watch -C kampas -x run" "${colors["blue"]}"
+execute_with_label "backend" "source ./kampas/.env; cargo watch -C kampas -x run" "${colors["blue"]}"
 execute_with_label "frontend" "sleep 4; cd frontend; npm run dev" "${colors["magenta"]}" 
 
 kill_background_jobs() {
