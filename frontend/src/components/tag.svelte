@@ -7,7 +7,7 @@
 
 	let elem: HTMLElement;
 
-	$: textColor = isColorLight(tag.color_hex) ? 'var(--input-bg)' : 'var(--text-color)';
+	$: textColor = isColorLight(tag.color_hex) ? 'var(--text-dark)' : 'var(--text-light)';
 
 	function isColorLight(color: String) {
 		// Convert color to RGB format

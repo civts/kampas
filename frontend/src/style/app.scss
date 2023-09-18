@@ -1,14 +1,29 @@
 :root {
-	--text-color: white;
-	--accent: #d5fff3;
+	--text-color: #13151e;
+	--accent: hsl(163, 80%, 52%);
 	--error: rgb(148, 29, 29);
-	--bg1: #13151e;
-	--bg2: #4b644a;
-	--input-bg: rgb(5, 11, 15);
+	--bg1: white;
+	--bg2: rgb(202, 196, 196);
+	--input-bg: rgb(226, 226, 226);
+	--text-light: var(--input-bg);
+	--text-dark: #13151e;
+	--graph-bg: #ffffff;
 
 	background-color: var(--bg1);
 	color: var(--text-color);
 	font-family: Verdana, Geneva, Tahoma, sans-serif;
+}
+
+@media (prefers-color-scheme: dark) {
+	:root {
+		--text-color: white;
+		--accent: #d5fff3;
+		--error: rgb(148, 29, 29);
+		--bg1: #13151e;
+		--bg2: #191616;
+		--input-bg: rgb(5, 11, 15);
+		--graph-bg: #13151e;
+	}
 }
 
 body {

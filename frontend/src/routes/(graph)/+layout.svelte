@@ -7,6 +7,6 @@
 <style>
 	:global(body) {
 		margin: 0;
-		background-color: #000011;
+		background-color: var(--graph-bg);
 	}
 </style>

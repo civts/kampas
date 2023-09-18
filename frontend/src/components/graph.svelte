@@ -58,7 +58,7 @@
 				links: links
 			})
 			.nodeAutoColorBy('group')
-			.nodeLabel((node: any) => `${node.title}`)
+			.nodeLabel((node: any) => `<span class="nodelabel">${node.title}</span>`)
 			.onNodeClick((node: object) => {
 				const n = <T>node;
 				if (n.group == 'control') {
@@ -72,12 +72,16 @@
 	afterUpdate(() => {
 		init_if_needed();
 
+		var cssVariableValue = getComputedStyle(document.documentElement).getPropertyValue(
+			'--graph-bg'
+		);
+		g.backgroundColor(cssVariableValue);
+
 		if (weighted_links) {
 			g.linkWidth((link) => {
-				const coverage =
-					c2.get((link.source?.toString() ?? '') + (link.target?.toString() ?? '')) ?? 0;
-
-				return coverage / 80;
+				const key = (link.source as any).id + (link.target as any).id;
+				const coverage = c2.get(key) ?? 0;
+				return coverage / 40;
 			});
 		} else {
 			g.linkWidth((_) => 1);
@@ -104,7 +108,7 @@
 		top: 0;
 		right: 0;
 		padding: 1rem;
-		background-color: #191616;
+		background-color: var(--bg2);
 		border-radius: 0.5rem;
 		margin: 0.25rem;
 	}
@@ -119,5 +123,8 @@
 		color: var(--text-color);
 		background-color: var(--input-bg);
 		cursor: pointer;
+	}
+	:global(span.nodelabel) {
+		color: var(--text-color);
 	}
 </style>
