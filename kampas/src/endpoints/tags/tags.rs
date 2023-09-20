@@ -140,3 +140,30 @@ pub(crate) async fn get_measure_tag_ids_batch(
         }
     }
 }
+
+#[get("/?<measure_id>")]
+pub(crate) async fn get_tags_for_measure(
+    user: User,
+    measure_id: String,
+    _required_roles: GetTagsRole,
+    db: &State<Surreal<Client>>,
+) -> status::Custom<String> {
+    println!(
+        "{} is requesting the tags for measure {measure_id}",
+        user.username
+    );
+    let measures_res = surrealdb::measure::get_tags_for_measure(&measure_id, db).await;
+    match measures_res {
+        Ok(tags) => {
+            let a = serde_json::to_string(&tags).expect("can serialize the measure tags to JSON");
+            status::Custom(Status::Ok, a)
+        }
+        Err(err) => {
+            println!("Something went wrong getting the measure tags: {}", err);
+            status::Custom(
+                Status::InternalServerError,
+                Status::InternalServerError.reason_lossy().to_string(),
+            )
+        }
+    }
+}

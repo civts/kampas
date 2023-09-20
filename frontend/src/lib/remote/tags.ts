@@ -19,14 +19,11 @@ export async function get_tags(session: Session) {
 
 export async function get_tags_for_measure(measure_id: String, session: Session) {
 	try {
-		const tags_resp = await fetch(
-			BACKEND_URL + `/api/v1/measures/tags_for_measure?measure_id=${measure_id}`,
-			{
-				headers: {
-					Authorization: `Bearer ${session.auth_token}`
-				}
+		const tags_resp = await fetch(BACKEND_URL + `/api/v1/tags/?measure_id=${measure_id}`, {
+			headers: {
+				Authorization: `Bearer ${session.auth_token}`
 			}
-		);
+		});
 		const tag_ids: Tag[] = await tags_resp.json();
 		return tag_ids;
 	} catch (error) {

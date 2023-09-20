@@ -15,13 +15,14 @@ use endpoints::{
     },
     measures::measures::{
         add_measure, associate_measure, get_coverage_for_measure, get_measure, get_measures,
-        get_measures_for_control, get_number_controls_batch, get_tags_for_measure, update_measure,
+        get_measures_for_control, get_number_controls_batch, update_measure,
     },
     rankings::ranking::{get_ranking, get_rankings, new_ranking},
     tags::{
         tag_control::{add_tag_to_control, remove_tag_from_control},
         tags::{
             add_tag, get_measure_tag_ids_batch, get_tags, get_tags_batch, get_tags_for_control,
+            get_tags_for_measure,
         },
     },
 };
@@ -61,6 +62,7 @@ async fn rocket() -> _ {
                 get_tags_for_control,
                 add_tag_to_control,
                 remove_tag_from_control,
+                get_tags_for_measure,
                 get_measure_tag_ids_batch
             ],
         )
@@ -74,7 +76,6 @@ async fn rocket() -> _ {
                 get_measures_for_control,
                 get_coverage_for_measure,
                 associate_measure,
-                get_tags_for_measure,
                 get_number_controls_batch
             ],
         )
