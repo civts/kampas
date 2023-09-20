@@ -1,9 +1,10 @@
-use crate::helpers::cryptography::hash_salted_password;
 use crate::helpers::surrealdb::token::add_token;
 use crate::helpers::surrealdb::token::get_token_for_user;
 use crate::helpers::surrealdb::user::get_user;
 use crate::models::token::AuthToken;
-use blake3::Hash;
+use argon2::Argon2;
+use argon2::PasswordHash;
+use argon2::PasswordVerifier;
 use rocket::form::Form;
 use rocket::http::Status;
 use rocket::response::status;
@@ -35,16 +36,12 @@ pub(crate) async fn generate_token(
                     "The user we fetched must be the same as the logged in one"
                 );
 
-                // Note: the Hash type we are using implements contant-time comparison.
-                // This is essential to prevent time-based attacks
-                let db_password_hash = Hash::from_hex(user.password_hash)
+                let db_password_hash = PasswordHash::new(&user.password_hash)
                     .expect("The password hash in the db is valid");
-                let password_hash = Hash::from_hex(hash_salted_password(
-                    &form_data.password,
-                    &user.password_salt,
-                ))
-                .expect("This must be a valid hash, else we can't program");
-                if password_hash == db_password_hash {
+                if Argon2::default()
+                    .verify_password(form_data.password.as_bytes(), &db_password_hash)
+                    .is_ok()
+                {
                     let previous_token_opt = get_token_for_user(username, db).await.unwrap_or(None);
                     if let Some(token) = previous_token_opt {
                         if token.is_expired() {

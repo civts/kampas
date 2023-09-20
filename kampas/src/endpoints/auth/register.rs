@@ -1,5 +1,4 @@
-use crate::helpers::cryptography::generate_random_string;
-use crate::helpers::cryptography::hash_salted_password;
+use crate::helpers::cryptography::hash_password;
 use crate::helpers::surrealdb::user::add_user;
 use crate::helpers::surrealdb::user::does_user_exist;
 use crate::models::role::Role;
@@ -29,14 +28,12 @@ pub(crate) async fn register(
         println!("{} already registered", &req_data.username);
         status::Custom(Status::Conflict, "Username already registered")
     } else {
-        let salt = generate_random_string(64);
-        let password_hash = hash_salted_password(&req_data.password, &salt);
+        let password_hash = hash_password(&req_data.password);
 
         let add_res = add_user(
             User {
                 username: req_data.username.to_owned(),
                 password_hash,
-                password_salt: salt,
                 roles: vec![Role::GetControls],
             },
             db,

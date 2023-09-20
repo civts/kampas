@@ -55,7 +55,7 @@ pub(crate) async fn get_tags(
     }
 }
 
-#[get("/?<control_id>")]
+#[get("/?<control_id>", rank = 1)]
 /// Get all the tags for a control
 pub(crate) async fn get_tags_for_control(
     _required_roles: GetTagsRole,

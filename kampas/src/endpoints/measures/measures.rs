@@ -1,12 +1,10 @@
 use crate::{
-    endpoints::tags::tags::GetTagsRole,
     generate_endpoint_roles,
     helpers::surrealdb::measure::{
         add_measure as add_measurel, associate_measure as associate_measurel,
         get_coverage_for_measure as get_coverage_for_measurec, get_measure as get_measurel,
         get_measures as get_measuress, get_measures_for_control as get_measures_for_controll,
-        get_number_controls_batch as get_number_controls_batchh,
-        get_tags_for_measure as get_tags_for_measurec, update_measure as update_measurec,
+        get_number_controls_batch as get_number_controls_batchh, update_measure as update_measurec,
     },
     models::{measure::Measure, role::Role, user::User},
 };
@@ -185,7 +183,6 @@ pub(crate) async fn get_coverage_for_measure(
         }
     }
 }
-
 
 #[derive(Debug, Clone, Serialize, Deserialize, FromForm)]
 #[serde(crate = "rocket::serde")]

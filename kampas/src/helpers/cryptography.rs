@@ -1,7 +1,8 @@
-use blake3::Hasher;
-use rand::prelude::*;
-use rand::rngs::adapter::ReseedingRng;
-use rand::rngs::OsRng;
+use argon2::{
+    password_hash::{rand_core::OsRng, PasswordHash, PasswordHasher, PasswordVerifier, SaltString},
+    Argon2,
+};
+use rand::{rngs::adapter::ReseedingRng, RngCore, SeedableRng};
 use rand_chacha::ChaCha20Core;
 
 pub(crate) fn generate_random_string(len: u16) -> String {
@@ -18,12 +19,26 @@ pub(crate) fn generate_random_string(len: u16) -> String {
     random_string
 }
 
-/// Returns the hash of a password (with salt) using the Blake3 algorithm
-pub(crate) fn hash_salted_password(password: &str, salt: &str) -> String {
-    let mut hasher = Hasher::new();
-    hasher.update(salt.as_bytes());
-    hasher.update(password.as_bytes());
-    let hash = hasher.finalize();
+/// Returns the hash of a password using the Argon2id algorithm
+pub(crate) fn hash_password(password: &str) -> String {
+    let salt = SaltString::generate(&mut OsRng);
 
-    hash.to_hex().to_string()
+    let argon2 = Argon2::default();
+
+    // Hash password to PHC string ($argon2id$v=19$...)
+    let password_hash = argon2
+        .hash_password(password.as_bytes(), &salt)
+        .expect("Can hash the password")
+        .to_string();
+
+    // Verify password against PHC string.
+    //
+    // NOTE: hash params from `parsed_hash` are used instead of what is configured in the
+    // `Argon2` instance.
+    let parsed_hash = PasswordHash::new(&password_hash).expect("Is a valid password hash");
+    assert!(Argon2::default()
+        .verify_password(password.as_bytes(), &parsed_hash)
+        .is_ok());
+
+    password_hash
 }
