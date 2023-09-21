@@ -16,11 +16,13 @@
 
 	let controls_count = 0;
 	let average_completion = 0;
+	let median_completion = 0;
 	let controls_completed = 0;
 
 	let measures_count = 0;
 	let measures_completed = 0;
 	let measures_avg_completion = 0;
+	let measures_median_completion = 0;
 
 	let sortedColumn = 'title';
 	let sortDirection = 1;
@@ -74,8 +76,13 @@
 		);
 		if (controls_count != 0) {
 			average_completion = sum / controls_count;
+			let prog = filtered_controls
+				.map((control) => data.completion.get(control.identifier) || 0)
+				.sort();
+			median_completion = prog[Math.floor(prog.length / 2)];
 		} else {
 			average_completion = 0;
+			median_completion = 0;
 		}
 
 		controls_completed = filtered_controls.filter(
@@ -127,8 +134,12 @@
 		}, 0);
 		if (measures_count != 0) {
 			measures_avg_completion = measures_sum.valueOf() / measures_count;
+			let measures_by_progress = sortedMeasures.sort((m1, m2) => m1.progress - m2.progress);
+			measures_median_completion =
+				measures_by_progress[Math.floor(measures_by_progress.length / 2)].progress;
 		} else {
 			measures_avg_completion = 0;
+			measures_median_completion = 0;
 		}
 
 		measures_completed = sortedMeasures.filter((m) => {
@@ -198,6 +209,11 @@
 				<p>On average, they are {Math.round(average_completion)}% complete</p>
 			</div>
 
+			<div>
+				<RoundGauge value={median_completion} percent={true} color="#b36200" />
+				<p>The median completion is {Math.round(median_completion)}%</p>
+			</div>
+
 			{#if controls_count > 1}
 				<div>
 					<div class="barchart">
@@ -232,6 +248,11 @@
 			<div>
 				<RoundGauge value={measures_avg_completion} percent={true} color="#99f" />
 				<p>On average, they are {Math.round(measures_avg_completion)}% complete</p>
+			</div>
+
+			<div>
+				<RoundGauge value={measures_median_completion} percent={true} color="#f9f" />
+				<p>The median completion is {measures_median_completion}%</p>
 			</div>
 
 			{#if measures_count > 1}
