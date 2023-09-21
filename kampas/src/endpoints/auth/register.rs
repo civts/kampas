@@ -34,7 +34,12 @@ pub(crate) async fn register(
             User {
                 username: req_data.username.to_owned(),
                 password_hash,
-                roles: vec![Role::GetControls],
+                roles: vec![
+                    Role::GetControls,
+                    Role::GetTags,
+                    Role::GetMeasures,
+                    Role::GetRankings
+                ],
             },
             db,
         )
