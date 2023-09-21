@@ -15,7 +15,7 @@
 		}
 
 		let mindata = Math.round(Math.min(...data));
-		let maxdata = Math.round(Math.max(...data));
+		let maxdata = Math.round(Math.max(...data)) + 1;
 
 		const slots = 20;
 		let c = (maxdata - mindata) / slots;

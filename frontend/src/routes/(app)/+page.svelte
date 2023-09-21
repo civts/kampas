@@ -194,7 +194,7 @@
 		<p>See the complete list of <a href="/controls">all controls</a></p>
 
 		<div class="row">
-			<div>
+			<div class="center_vert">
 				<RoundGauge
 					value={controls_completed}
 					max_value={controls_count}
@@ -204,12 +204,12 @@
 				<p>{controls_completed} of these have been completed</p>
 			</div>
 
-			<div>
+			<div class="center_vert">
 				<RoundGauge value={average_completion} percent={true} color="purple" />
 				<p>On average, they are {Math.round(average_completion)}% complete</p>
 			</div>
 
-			<div>
+			<div class="center_vert">
 				<RoundGauge value={median_completion} percent={true} color="#b36200" />
 				<p>The median completion is {Math.round(median_completion)}%</p>
 			</div>
@@ -235,7 +235,7 @@
 		</p>
 
 		<div class="row">
-			<div>
+			<div class="center_vert">
 				<RoundGauge
 					value={measures_completed}
 					max_value={measures_count}
@@ -245,12 +245,12 @@
 				<p>{measures_completed} of these have been completed</p>
 			</div>
 
-			<div>
+			<div class="center_vert">
 				<RoundGauge value={measures_avg_completion} percent={true} color="#99f" />
 				<p>On average, they are {Math.round(measures_avg_completion)}% complete</p>
 			</div>
 
-			<div>
+			<div class="center_vert">
 				<RoundGauge value={measures_median_completion} percent={true} color="#f9f" />
 				<p>The median completion is {measures_median_completion}%</p>
 			</div>
@@ -404,5 +404,10 @@
 	.start {
 		justify-content: start;
 		gap: 1rem;
+	}
+	.center_vert {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
 	}
 </style>
