@@ -2,6 +2,7 @@ use crate::{
     generate_endpoint_roles,
     helpers::surrealdb::measure::{
         add_measure as add_measurel, associate_measure as associate_measurel,
+        disassociate_measure as disassociate,
         get_coverage_for_measure as get_coverage_for_measurec, get_measure as get_measurel,
         get_measures as get_measuress, get_measures_for_control as get_measures_for_controll,
         get_number_controls_batch as get_number_controls_batchh, update_measure as update_measurec,
@@ -68,6 +69,31 @@ pub(crate) async fn associate_measure(
     .await;
     match associate_res {
         Ok(_) => status::Custom(Status::Ok, format!("Ok, measure associated").to_string()),
+        Err(err) => {
+            println!("Could not associate measure: {err:?}");
+            status::Custom(
+                Status::InternalServerError,
+                Status::InternalServerError.reason_lossy().to_string(),
+            )
+        }
+    }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, FromForm)]
+#[serde(crate = "rocket::serde")]
+pub(crate) struct DisassociateMeasureFormData {
+    pub(crate) measure_id: String,
+    pub(crate) control_id: String,
+}
+#[delete("/associate", data = "<form_data>")]
+pub(crate) async fn disassociate_measure(
+    form_data: Form<DisassociateMeasureFormData>,
+    _r: AssociateMeasureRoles,
+    db: &State<Surreal<Client>>,
+) -> status::Custom<String> {
+    let associate_res = disassociate(&form_data.measure_id, &form_data.control_id, db).await;
+    match associate_res {
+        Ok(_) => status::Custom(Status::Ok, format!("Ok, measure disassociated").to_string()),
         Err(err) => {
             println!("Could not associate measure: {err:?}");
             status::Custom(

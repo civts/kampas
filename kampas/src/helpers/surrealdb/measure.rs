@@ -126,6 +126,30 @@ pub(crate) async fn associate_measure(
         }
     }
 }
+pub(crate) async fn disassociate_measure(
+    measure_id: &str,
+    control_id: &str,
+    db: &Surreal<Client>,
+) -> surrealdb::Result<()> {
+    db.query("DELETE FROM satisfies WHERE in=$mid AND out=$cid")
+        .bind((
+            "mid",
+            Thing {
+                id: Id::String(measure_id.to_string()),
+                tb: "measure".to_string(),
+            },
+        ))
+        .bind((
+            "cid",
+            Thing {
+                id: Id::String(control_id.to_string()),
+                tb: "control".to_string(),
+            },
+        ))
+        .await?
+        .check()
+        .map(|_| ())
+}
 
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(crate = "rocket::serde")]

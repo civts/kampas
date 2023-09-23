@@ -12,8 +12,27 @@
 	let tags: TagI[] = [];
 
 	$: control = data.control;
+	$: measures = data.measures;
 
 	let edit_form_shown = false;
+
+	async function disassociate(measure_id: String) {
+		const response = await fetch('/api/measures/associate', {
+			method: 'DELETE',
+			body: JSON.stringify({ measure_id, control_id: control?.identifier }),
+			headers: {
+				'Content-Type': 'application/json'
+			}
+		});
+
+		if (response.ok) {
+			const index = measures.findIndex((meas) => meas.identifier == measure_id);
+			if (index != -1) {
+				measures.splice(index, 1);
+				measures = measures;
+			}
+		}
+	}
 
 	async function addTag(tagData: TagI, control_id: String) {
 		const response = await fetch('/api/tags/add_to_control', {
@@ -128,11 +147,21 @@
 	<section>
 		<h1>Associated Measures</h1>
 		<ul>
-			{#each data.measures as measure}
+			{#each measures as measure}
 				<li>
 					<a href="/measures/{measure.identifier}">
 						<span>{measure.title} (progress: {measure.progress}%)</span>
 					</a>
+					<button
+						class="btn"
+						on:click={(_) => {
+							if (confirm('Remove this measure from this control?')) {
+								disassociate(measure.identifier);
+							}
+						}}
+					>
+						Remove
+					</button>
 				</li>
 			{/each}
 			<AddMeasureButton
@@ -149,9 +178,9 @@
 						});
 
 						if (response.ok) {
-							if (data.measures.findIndex((metr) => metr.identifier == m.identifier) == -1) {
-								data.measures.push(m);
-								data.measures = data.measures;
+							if (measures.findIndex((meas) => meas.identifier == m.identifier) == -1) {
+								measures.push(m);
+								measures = measures;
 							}
 						} else {
 							alert('Associating the measure to the control failed. Are they already associated?');

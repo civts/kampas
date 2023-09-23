@@ -53,6 +53,10 @@ pub(crate) enum Role {
     #[serde(rename = "AssociateMeasures")]
     AssociateMeasures,
 
+    /// Can disassociate (existing) measures from (existing) controls
+    #[serde(rename = "DisassociateMeasures")]
+    DisassociateMeasures,
+
     /// Can create a new ranking
     #[serde(rename = "CreateRanking")]
     CreateRanking,

@@ -14,8 +14,9 @@ use endpoints::{
         upload::upload,
     },
     measures::measures::{
-        add_measure, associate_measure, get_coverage_for_measure, get_measure, get_measures,
-        get_measures_for_control, get_number_controls_batch, update_measure,
+        add_measure, associate_measure, disassociate_measure, get_coverage_for_measure,
+        get_measure, get_measures, get_measures_for_control, get_number_controls_batch,
+        update_measure,
     },
     rankings::ranking::{get_ranking, get_rankings, new_ranking},
     tags::{
@@ -72,7 +73,8 @@ async fn rocket() -> _ {
                 get_measures_for_control,
                 get_coverage_for_measure,
                 associate_measure,
-                get_number_controls_batch
+                get_number_controls_batch,
+                disassociate_measure
             ],
         )
         .mount(
