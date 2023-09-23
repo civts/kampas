@@ -9,7 +9,7 @@ use endpoints::{
         controls::{
             add_control, get_control, get_control_completion, get_control_completion_b,
             get_controls, get_controls_for_measure, get_measure_control_association_batch,
-            get_measures_for_control_count_batch,
+            get_measures_for_control_count_batch, update_control,
         },
         upload::upload,
     },
@@ -20,10 +20,7 @@ use endpoints::{
     rankings::ranking::{get_ranking, get_rankings, new_ranking},
     tags::{
         tag_control::{add_tag_to_control, remove_tag_from_control},
-        tags::{
-            add_tag, get_measure_tag_ids_batch, get_tags, get_tags_batch, get_tags_for_control,
-            get_tags_for_measure,
-        },
+        tags::{add_tag, get_measure_tag_ids_batch, get_tags_batch, get_tags_for_control},
     },
 };
 use helpers::{cors::CORS, surrealdb::connection::get_client};
@@ -50,19 +47,18 @@ async fn rocket() -> _ {
                 get_control_completion,
                 get_control_completion_b,
                 get_measures_for_control_count_batch,
-                get_measure_control_association_batch
+                get_measure_control_association_batch,
+                update_control
             ],
         )
         .mount(
             "/api/v1/tags",
             routes![
                 add_tag,
-                get_tags,
                 get_tags_batch,
                 get_tags_for_control,
                 add_tag_to_control,
                 remove_tag_from_control,
-                get_tags_for_measure,
                 get_measure_tag_ids_batch
             ],
         )

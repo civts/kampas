@@ -156,3 +156,24 @@ pub(crate) async fn get_measures_for_control_count_batch(
 
     Ok(res)
 }
+
+pub(crate) async fn update_control(
+    control: Control,
+    db: &Surreal<Client>,
+) -> surrealdb::Result<String> {
+    // Create a new control with a random id
+    let updated_opt: Option<Record> = db
+        .update(("control", &control.identifier))
+        .content(&control)
+        .await?;
+    match updated_opt {
+        Some(u) => match u.id.id {
+            Id::String(id_str) => Ok(id_str),
+            Id::Number(id) => Ok(id.to_string()),
+            _ => panic!("We don't do that here. We shall only use String IDs"),
+        },
+        None => Err(surrealdb::Error::Api(surrealdb::error::Api::InternalError(
+            format!("Control with id {} was not updated", &control.identifier).to_string(),
+        ))),
+    }
+}

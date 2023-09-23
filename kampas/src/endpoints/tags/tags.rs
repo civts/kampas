@@ -34,46 +34,73 @@ pub(crate) async fn add_tag(
 }
 
 generate_endpoint_roles!(GetTagsRole, { Role::GetTags });
-#[get("/")]
-/// Get all the tags
-pub(crate) async fn get_tags(
-    _r: GetTagsRole,
-    db: &State<Surreal<Client>>,
-) -> status::Custom<String> {
-    match surrealdb::tag::get_tags(db).await {
-        Ok(tags) => status::Custom(
-            Status::Ok,
-            serde_json::to_string(&tags).expect("can serialize the tags to JSON"),
-        ),
-        Err(err) => {
-            println!("Something went wrong getting the tags: {}", err);
-            status::Custom(
-                Status::InternalServerError,
-                Status::InternalServerError.reason_lossy().to_string(),
-            )
-        }
-    }
-}
-
-#[get("/?<control_id>", rank = 1)]
-/// Get all the tags for a control
+// There should be a cleaner way to do this, but time is running thin
+#[get("/?<control_id>&<measure_id>")]
 pub(crate) async fn get_tags_for_control(
+    user: User,
     _required_roles: GetTagsRole,
-    control_id: &str,
+    control_id: Option<&str>,
+    measure_id: Option<&str>,
     db: &State<Surreal<Client>>,
 ) -> status::Custom<String> {
-    match surrealdb::tag::get_tags_for_control(control_id, db).await {
-        Ok(tags) => status::Custom(
-            Status::Ok,
-            serde_json::to_string(&tags).expect("can serialize the tags to JSON"),
-        ),
-        Err(err) => {
-            println!("Something went wrong getting the tags: {}", err);
-            status::Custom(
-                Status::InternalServerError,
-                Status::InternalServerError.reason_lossy().to_string(),
-            )
-        }
+    match control_id {
+        //get tags for control
+        Some(control_id) => match surrealdb::tag::get_tags_for_control(control_id, db).await {
+            Ok(tags) => {
+                println!("{} tags for {}", &tags.len(), control_id);
+                status::Custom(
+                    Status::Ok,
+                    serde_json::to_string(&tags).expect("can serialize the tags to JSON"),
+                )
+            }
+            Err(err) => {
+                println!("Something went wrong getting the tags: {}", err);
+                status::Custom(
+                    Status::InternalServerError,
+                    Status::InternalServerError.reason_lossy().to_string(),
+                )
+            }
+        },
+        None => match measure_id {
+            //get tags for measure
+            Some(measure_id) => {
+                println!(
+                    "{} is requesting the tags for measure {measure_id}",
+                    user.username
+                );
+                let measures_res = surrealdb::measure::get_tags_for_measure(&measure_id, db).await;
+                match measures_res {
+                    Ok(tags) => {
+                        let a = serde_json::to_string(&tags)
+                            .expect("can serialize the measure tags to JSON");
+                        status::Custom(Status::Ok, a)
+                    }
+                    Err(err) => {
+                        println!("Something went wrong getting the measure tags: {}", err);
+                        status::Custom(
+                            Status::InternalServerError,
+                            Status::InternalServerError.reason_lossy().to_string(),
+                        )
+                    }
+                }
+            }
+            None => {
+                //get all tags
+                match surrealdb::tag::get_tags(db).await {
+                    Ok(tags) => status::Custom(
+                        Status::Ok,
+                        serde_json::to_string(&tags).expect("can serialize the tags to JSON"),
+                    ),
+                    Err(err) => {
+                        println!("Something went wrong getting the tags: {}", err);
+                        status::Custom(
+                            Status::InternalServerError,
+                            Status::InternalServerError.reason_lossy().to_string(),
+                        )
+                    }
+                }
+            }
+        },
     }
 }
 
@@ -133,33 +160,6 @@ pub(crate) async fn get_measure_tag_ids_batch(
                 "Something went wrong getting the measure tags (batch): {}",
                 err
             );
-            status::Custom(
-                Status::InternalServerError,
-                Status::InternalServerError.reason_lossy().to_string(),
-            )
-        }
-    }
-}
-
-#[get("/?<measure_id>")]
-pub(crate) async fn get_tags_for_measure(
-    user: User,
-    measure_id: String,
-    _required_roles: GetTagsRole,
-    db: &State<Surreal<Client>>,
-) -> status::Custom<String> {
-    println!(
-        "{} is requesting the tags for measure {measure_id}",
-        user.username
-    );
-    let measures_res = surrealdb::measure::get_tags_for_measure(&measure_id, db).await;
-    match measures_res {
-        Ok(tags) => {
-            let a = serde_json::to_string(&tags).expect("can serialize the measure tags to JSON");
-            status::Custom(Status::Ok, a)
-        }
-        Err(err) => {
-            println!("Something went wrong getting the measure tags: {}", err);
             status::Custom(
                 Status::InternalServerError,
                 Status::InternalServerError.reason_lossy().to_string(),

@@ -6,6 +6,7 @@ use crate::{
             get_control_completion as get_control_completionn, get_control_completion_batch,
             get_controls as get_controlss, get_controls_for_measure as get_controls_for_measurec,
             get_measures_for_control_count_batch as get_measures_for_control_count_batchh,
+            update_control as update_controlc,
         },
         measure::get_measure_control_association,
     },
@@ -26,7 +27,7 @@ pub(crate) struct ControlFormData {
     pub(crate) description: String,
 }
 
-generate_endpoint_roles!(EditControlRoles, { Role::EditControls, Role::GetControls });
+generate_endpoint_roles!(EditControlRoles, { Role::EditControls });
 #[post("/", data = "<form_data>")]
 pub(crate) async fn add_control(
     form_data: Form<ControlFormData>,
@@ -199,6 +200,59 @@ pub(crate) async fn get_measures_for_control_count_batch(
                 "Something went wrong getting the number of associated measures (batch): {}",
                 err
             );
+            status::Custom(
+                Status::InternalServerError,
+                Status::InternalServerError.reason_lossy().to_string(),
+            )
+        }
+    }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, FromForm)]
+#[serde(crate = "rocket::serde")]
+pub(crate) struct UpdateControlFormData {
+    #[field(validate = len(3..30))]
+    pub(crate) title: Option<String>,
+    #[field(validate = len(3..300))]
+    pub(crate) description: Option<String>,
+}
+
+#[patch("/<control_id>", data = "<form_data>")]
+pub(crate) async fn update_control(
+    mut form_data: Form<UpdateControlFormData>,
+    control_id: String,
+    _r: EditControlRoles,
+    db: &State<Surreal<Client>>,
+) -> status::Custom<String> {
+    let control_res = get_controll(db, control_id.clone()).await;
+    match control_res {
+        Ok(control_opt) => match control_opt {
+            Some(mut control) => {
+                if let Some(d) = form_data.description.take() {
+                    control.description = d;
+                }
+                if let Some(t) = form_data.title.take() {
+                    control.title = t;
+                }
+                let update_res = update_controlc(control, db).await;
+                match update_res {
+                    Ok(_) => status::Custom(Status::Ok, format!("{control_id}").to_string()),
+                    Err(err) => {
+                        println!("Could not update the control {control_id}: {err:?}");
+                        status::Custom(
+                            Status::InternalServerError,
+                            Status::InternalServerError.reason_lossy().to_string(),
+                        )
+                    }
+                }
+            }
+            None => status::Custom(
+                Status::NotFound,
+                Status::NotFound.reason_lossy().to_string(),
+            ),
+        },
+        Err(err) => {
+            println!("Could not get the control to update: {err:?}");
             status::Custom(
                 Status::InternalServerError,
                 Status::InternalServerError.reason_lossy().to_string(),

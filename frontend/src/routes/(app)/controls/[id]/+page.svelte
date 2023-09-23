@@ -4,12 +4,16 @@
 	import AddMeasureButton from '../../../../components/add_measure_button.svelte';
 	import AddTagButton from '../../../../components/add_tag_button.svelte';
 	import Tag from '../../../../components/tag.svelte';
-	import type { PageData } from './$types';
+	import type { ActionData, PageData } from './$types';
 
 	export let data: PageData;
+	export let form: ActionData;
+
 	let tags: TagI[] = [];
 
 	$: control = data.control;
+
+	let edit_form_shown = false;
 
 	async function addTag(tagData: TagI, control_id: String) {
 		const response = await fetch('/api/tags/add_to_control', {
@@ -88,6 +92,40 @@
 		/>
 	</div>
 	<section>
+		<button
+			class="btn"
+			type="button"
+			on:click={(_) => {
+				edit_form_shown = !edit_form_shown;
+			}}
+		>
+			Edit control
+		</button>
+		{#if edit_form_shown}
+			<form action="?/edit_control" method="post">
+				<label for="title">Title</label>
+				<input type="text" name="title" id="title" placeholder="title" value={control.title} />
+				<label for="description">Description</label>
+				<input
+					type="text"
+					name="description"
+					id="description"
+					placeholder="description"
+					value={control.description}
+				/>
+				<input hidden type="text" name="id" bind:value={control.identifier} />
+
+				<button type="submit">Update</button>
+			</form>
+			{#if form?.success}
+				Control updated successfully
+			{/if}
+			{#if form?.reason}
+				<p class="error">{form.reason}</p>
+			{/if}
+		{/if}
+	</section>
+	<section>
 		<h1>Associated Measures</h1>
 		<ul>
 			{#each data.measures as measure}
@@ -140,5 +178,14 @@
 	.row {
 		justify-content: start;
 		gap: 1rem;
+	}
+
+	button.btn {
+		background-color: var(--input-bg);
+		border: none;
+		color: var(--text-color);
+		border-radius: 0.5rem;
+		padding: 0.75rem 1rem;
+		margin-top: 1em;
 	}
 </style>
