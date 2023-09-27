@@ -236,6 +236,12 @@ pub(crate) fn minimize_cost(
             .map(|measure| (measure.identifier.as_str(), measure.effort)),
     );
 
+    let measure_progresses = BTreeMap::from_iter(
+        measures
+            .iter()
+            .map(|measure| (measure.identifier.as_str(), measure.progress)),
+    );
+
     // Iterate until all controls are covered, adding the best measure every time
     while !(remaining_controls.is_empty() || unused_measures.is_empty()) {
         let mut min_cost = f64::MAX;
@@ -245,29 +251,35 @@ pub(crate) fn minimize_cost(
             // Controls that would be covered by this measure
             let covered_controls = coverage_map.get(*measure_id).unwrap_or(&empty_vec);
 
-            let effort = *measure_efforts
-                .get(measure_id)
-                .expect("can get effort for measure") as f64;
-            let coverage_increase = covered_controls.iter().fold(0u64, |prev, c| {
-                let control_id = c.0.as_str();
-                let coverage = c.1;
-                if
-                // remaining_controls.contains(control_id) &&
-                controls_coverage
-                    .get(control_id)
-                    .map(|coverage| coverage < &min_coverage)
-                    .unwrap_or(false)
-                {
-                    // Add the contribution of this measure for this control
-                    prev + (coverage as u64)
+            let cost = {
+                if measure_progresses.get(measure_id).unwrap_or(&0) >= &100 {
+                    0f64
                 } else {
-                    prev
+                    let effort = *measure_efforts
+                        .get(measure_id)
+                        .expect("can get effort for measure")
+                        as f64;
+                    let coverage_increase = covered_controls.iter().fold(0u64, |prev, c| {
+                        let control_id = c.0.as_str();
+                        let coverage = c.1;
+                        if remaining_controls.contains(control_id)
+                            && controls_coverage
+                                .get(control_id)
+                                .map(|coverage| coverage < &min_coverage)
+                                .unwrap_or(false)
+                        {
+                            // Add the contribution of this measure for this control
+                            prev + (coverage as u64)
+                        } else {
+                            prev
+                        }
+                    });
+                    if coverage_increase != 0 {
+                        effort / (coverage_increase as f64)
+                    } else {
+                        f64::MAX
+                    }
                 }
-            });
-            let cost = if coverage_increase != 0 {
-                effort / (coverage_increase as f64)
-            } else {
-                f64::MAX
             };
 
             let covered_ids: HashSet<&str> = covered_controls
