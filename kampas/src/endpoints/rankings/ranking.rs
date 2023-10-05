@@ -142,13 +142,31 @@ async fn generate_ranking(
     let measures = surrealdb::measure::get_measures(db).await?;
 
     // Get the relation between controls and measures
-    let measures_for_control = surrealdb::measure::get_measure_control_association(db).await?;
+    let mut controls_for_measure = surrealdb::measure::get_measure_control_association(db).await?;
+    let control_ids: HashSet<&String> = HashSet::from_iter(controls.iter().map(|c| &c.identifier));
+    for (_, v) in controls_for_measure.iter_mut() {
+        v.retain(|(cid, _)| control_ids.contains(cid))
+    }
+
+    let completion_vec = surrealdb::control::get_control_completion_batch(
+        db,
+        controls.iter().map(|c| c.identifier.clone()).collect(),
+    )
+    .await?;
+
+    let mut completion_map = HashMap::new();
+    for i in 0..controls.len() {
+        let identifier = controls.get(i).expect("there is a control");
+        let compl = completion_vec.get(i).expect("there is a completion");
+        completion_map.insert(identifier.identifier.clone(), *compl);
+    }
 
     // Start greedy: take the measure with the most associated controls (divided by its effort), strike out the controls
     let (best_measures, controls_satisfied) = minimize_cost(
         &controls,
         &measures,
-        &measures_for_control,
+        &controls_for_measure,
+        &completion_map,
         params.minimum_coverage,
     );
 
@@ -215,124 +233,111 @@ pub(crate) fn minimize_cost(
     controls: &[Control],
     measures: &[Measure],
     coverage_map: &BTreeMap<String, Vec<(String, u8)>>,
-    min_coverage: u8,
+    completion_map: &HashMap<String, f64>,
+    min_progress: u8,
 ) -> (Vec<String>, Vec<String>) {
+    println!(
+        "About to minimize the cost for {} controls and {} measures",
+        controls.len(),
+        measures.len()
+    );
     let mut selected_measures: Vec<String> = vec![];
-    let mut unused_measures: HashSet<&str> =
-        measures.iter().map(|m| m.identifier.as_str()).collect();
-    let empty_vec = Vec::new();
 
-    let mut remaining_controls: HashSet<&str> =
-        controls.iter().map(|c| c.identifier.as_str()).collect();
+    // Measure id with measure, only unselected ones
+    let mut remaining_measures: HashMap<&String, &Measure> =
+        HashMap::from_iter(measures.iter().map(|m| (&m.identifier, m)));
+    // Control id with control, only incomplete ones
+    let mut incomplete_controls: HashMap<&String, &Control> =
+        HashMap::from_iter(controls.iter().map(|c| (&c.identifier, c)));
+    let mut completion_now: HashMap<String, f64> = completion_map.clone();
+    let emptyvec = Vec::new();
+    while !(remaining_measures.is_empty() || incomplete_controls.is_empty()) {
+        //find best measure
+        let mut lowest_cost = f64::MAX;
+        let mut best_measure = None;
+        for measure in remaining_measures.values() {
+            if let Some(covered_controls) = coverage_map.get(&measure.identifier) {
+                let covers_an_incomplete_control = covered_controls
+                    .iter()
+                    .any(|control| incomplete_controls.contains_key(&control.0));
 
-    let mut controls_coverage: HashMap<&str, u8> = controls
-        .iter()
-        .map(|c| (c.identifier.as_str(), 0))
-        .collect();
-
-    let measure_efforts = BTreeMap::from_iter(
-        measures
-            .iter()
-            .map(|measure| (measure.identifier.as_str(), measure.effort)),
-    );
-
-    let measure_progresses = BTreeMap::from_iter(
-        measures
-            .iter()
-            .map(|measure| (measure.identifier.as_str(), measure.progress)),
-    );
-
-    // Iterate until all controls are covered, adding the best measure every time
-    while !(remaining_controls.is_empty() || unused_measures.is_empty()) {
-        let mut min_cost = f64::MAX;
-        let mut best_measure: Option<&str> = None;
-
-        for measure_id in &unused_measures {
-            // Controls that would be covered by this measure
-            let covered_controls = coverage_map.get(*measure_id).unwrap_or(&empty_vec);
-
-            let cost = {
-                if measure_progresses.get(measure_id).unwrap_or(&0) >= &100 {
-                    0f64
-                } else {
-                    let effort = *measure_efforts
-                        .get(measure_id)
-                        .expect("can get effort for measure")
-                        as f64;
-                    let coverage_increase = covered_controls.iter().fold(0u64, |prev, c| {
-                        let control_id = c.0.as_str();
-                        let coverage = c.1;
-                        if remaining_controls.contains(control_id)
-                            && controls_coverage
-                                .get(control_id)
-                                .map(|coverage| coverage < &min_coverage)
-                                .unwrap_or(false)
-                        {
-                            // Add the contribution of this measure for this control
-                            prev + (coverage as u64)
-                        } else {
-                            prev
-                        }
-                    });
-                    if coverage_increase != 0 {
-                        effort / (coverage_increase as f64)
-                    } else {
-                        f64::MAX
+                if covers_an_incomplete_control {
+                    let cost = measure_cost(measure, covered_controls, &incomplete_controls);
+                    if cost < lowest_cost {
+                        lowest_cost = cost;
+                        best_measure = Some(measure);
                     }
+                } else {
+                    println!(
+                        "Measure {} only covers complete controls",
+                        &measure.identifier
+                    );
                 }
-            };
-
-            let covered_ids: HashSet<&str> = covered_controls
-                .iter()
-                .map(|(control_id, _)| control_id.as_str())
-                .collect();
-            let incomplete_covered = remaining_controls.intersection(&covered_ids).count();
-
-            // If this measure has the minimum cost and helps covering some incomplete controls
-            if incomplete_covered > 0 && cost < min_cost {
-                min_cost = cost;
-                best_measure = Some(measure_id);
             }
         }
-
-        // Add the best measure to the selected set and remove the covered controls from consideration
-        if let Some(measure_id) = best_measure {
-            selected_measures.push(measure_id.to_string());
-            unused_measures.remove(measure_id);
-
-            let controls = &coverage_map.get(measure_id).unwrap_or(&empty_vec);
-            controls.iter().for_each(|(control_id, coverage)| {
-                let prev_value = controls_coverage.get(control_id.as_str()).unwrap();
-                let new_value = prev_value + coverage;
-                controls_coverage.insert(control_id, new_value);
-            });
-            remaining_controls = remaining_controls
-                .difference(
-                    &controls
-                        .iter()
-                        .filter(|(control_id, _)| {
-                            controls_coverage.get(control_id.as_str()).unwrap() >= &min_coverage
-                        })
-                        .map(|(c, _)| c.as_str())
-                        .collect(),
-                )
-                .cloned()
-                .collect();
+        //add to solution
+        if let Some(measure) = best_measure {
+            println!("Chose measure {} {}", measure.identifier, measure.title);
+            println!(">>>>>>>> cost: {lowest_cost}");
+            let controls = coverage_map.get(&measure.identifier).unwrap_or(&emptyvec);
+            for (control, coverage) in controls {
+                if let Some(prev) = completion_now.get(control) {
+                    let coverage_increase =
+                        ((100 - measure.progress) as f64) / 100f64 * (*coverage as f64);
+                    let updated = prev + coverage_increase;
+                    completion_now.insert(control.to_string(), updated);
+                    if updated >= (min_progress as f64) {
+                        println!("Marking control {control} as complete");
+                        incomplete_controls.remove(control);
+                    }
+                }
+            }
+            selected_measures.push(measure.identifier.clone());
+            remaining_measures.remove(&measure.identifier);
         } else {
+            println!("Did not find any best measure");
             break;
         }
     }
-
-    let covered_controls = controls_coverage
-        .iter()
-        .map(|(id, coverage)| {
-            if coverage >= &min_coverage {
-                return Some(id.to_string());
-            } else {
-                return None;
-            }
-        })
-        .flatten()
-        .collect();
+    println!(
+        "Ended because no more measures {}, no more controls {}",
+        remaining_measures.is_empty(),
+        incomplete_controls.is_empty()
+    );
+    let covered_controls = Vec::from_iter(controls.iter().map(|c| c.identifier.to_owned()).filter(
+        |id| {
+            completion_now
+                .get(id)
+                .map(|v| v >= &(min_progress as f64))
+                .unwrap_or(false)
+        },
+    ));
+    println!(
+        "{}/{} controls covered with {}/{} measures",
+        covered_controls.len(),
+        controls.len(),
+        selected_measures.len(),
+        measures.len()
+    );
     (selected_measures, covered_controls)
+}
+
+fn measure_cost(
+    measure: &Measure,
+    covered_controls: &Vec<(String, u8)>,
+    incomplete_controls: &HashMap<&String, &Control>,
+) -> f64 {
+    if measure.progress == 100 {
+        0f64
+    } else {
+        let coverage_increase = covered_controls
+            .iter()
+            .filter(|(c, _)| incomplete_controls.contains_key(c))
+            .fold(0u64, |prev, (_, cov)| prev + *cov as u64);
+        if coverage_increase == 0 {
+            f64::MAX
+        } else {
+            (measure.effort as f64) / (coverage_increase as f64)
+        }
+    }
 }
