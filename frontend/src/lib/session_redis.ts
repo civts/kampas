@@ -5,7 +5,7 @@ import { REDIS_URL } from '$env/static/private';
 const client = redis.createClient({
 	url: REDIS_URL,
 	socket: {
-		reconnectStrategy: (retries) => Math.min(retries * 50, 1000)
+		reconnectStrategy: (retries) => Math.min(retries * 1000)
 	}
 });
 await client.connect();
