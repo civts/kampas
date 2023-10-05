@@ -7,7 +7,7 @@ export const handle: Handle = async ({ event, resolve }) => {
 	const session = await getSessionFromCookiesOrCreate(event.cookies);
 
 	if (requiresAuthentication(event)) {
-		console.log(event.url.pathname + 'does require authentication');
+		console.log(event.url.pathname + ' does require authentication');
 		const isAuthenticated = await checkAuthentication(session);
 
 		if (!isAuthenticated) {
