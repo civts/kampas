@@ -1,5 +1,5 @@
 {
-  "editor.lightbulb.enabled": false,
+  "editor.lightbulb.enabled": "off",
   "rust-analyzer.assist.expressionFillDefault": "default",
   "workbench.colorCustomizations": {
     "[Default Dark+]": {
