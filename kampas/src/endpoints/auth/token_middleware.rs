@@ -33,7 +33,7 @@ impl<'r> FromRequest<'r> for AuthToken {
         match req.headers().get_one("authorization") {
             None => {
                 println!("No token supplied in the HTTP request");
-                Outcome::Failure((
+                Outcome::Error((
                     AuthTokenError::Missing.to_http_code(),
                     AuthTokenError::Missing,
                 ))
@@ -47,7 +47,7 @@ impl<'r> FromRequest<'r> for AuthToken {
                             Ok(Some(token)) => {
                                 if token.is_expired() {
                                     println!("The token is expired");
-                                    Outcome::Failure((
+                                    Outcome::Error((
                                         AuthTokenError::Invalid.to_http_code(),
                                         AuthTokenError::Invalid,
                                     ))
@@ -58,14 +58,14 @@ impl<'r> FromRequest<'r> for AuthToken {
                             }
                             Ok(None) => {
                                 println!("Could not find that token in the DB");
-                                Outcome::Failure((
+                                Outcome::Error((
                                     AuthTokenError::Invalid.to_http_code(),
                                     AuthTokenError::Invalid,
                                 ))
                             }
                             Err(err) => {
                                 println!("Could not query the DB: {err:?}");
-                                Outcome::Failure((
+                                Outcome::Error((
                                     AuthTokenError::InternalError.to_http_code(),
                                     AuthTokenError::InternalError,
                                 ))
@@ -74,7 +74,7 @@ impl<'r> FromRequest<'r> for AuthToken {
                     }
                     None => {
                         println!("The request is missing the authorization header");
-                        Outcome::Failure((
+                        Outcome::Error((
                             AuthTokenError::Missing.to_http_code(),
                             AuthTokenError::Missing,
                         ))

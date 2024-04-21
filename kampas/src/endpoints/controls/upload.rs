@@ -46,14 +46,14 @@ pub(crate) async fn upload(
             if is_header_valid {
                 parse_records(reader.records(), db).await
             } else {
-                Err(BadRequest(Some("The first column of the CSV must be \"Title\", and the second one \"Description\"".to_string())))
+                Err(BadRequest("The first column of the CSV must be \"Title\", and the second one \"Description\"".to_string()))
             }
         }
         Err(err) => {
             println!("Could not parse the first record of the file: {err:?}");
-            Err(BadRequest(Some(format!(
+            Err(BadRequest(format!(
                 "Could not parse the first record of the file. Ensure it is a valid csv"
-            ))))
+            )))
         }
     }
 }

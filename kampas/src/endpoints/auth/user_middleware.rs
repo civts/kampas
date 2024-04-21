@@ -23,14 +23,14 @@ impl<'r> FromRequest<'r> for User {
                 Ok(Some(user)) => Outcome::Success(user),
                 Ok(None) => {
                     println!("We have a token relative to an unknown user, TODO: delete the token");
-                    Outcome::Failure((
+                    Outcome::Error((
                         AuthTokenError::Invalid.to_http_code(),
                         AuthTokenError::Invalid,
                     ))
                 }
                 Err(err) => {
                     println!("Had a problem retrieving user from database: {err:?}");
-                    Outcome::Failure((
+                    Outcome::Error((
                         AuthTokenError::InternalError.to_http_code(),
                         AuthTokenError::InternalError,
                     ))
@@ -38,7 +38,7 @@ impl<'r> FromRequest<'r> for User {
             }
         } else {
             let failure = token_from_req.failed().expect("Should be a failure");
-            Outcome::Failure(failure)
+            Outcome::Error(failure)
         }
     }
 }

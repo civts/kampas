@@ -25,7 +25,7 @@ macro_rules! generate_endpoint_roles {
                         if has_all_roles {
                             Outcome::Success($struct_name {})
                         } else {
-                            Outcome::Failure((
+                            Outcome::Error((
                                 Status::Forbidden,
                                 Status::Forbidden
                                     .reason()
@@ -33,7 +33,7 @@ macro_rules! generate_endpoint_roles {
                             ))
                         }
                     }
-                    _ => Outcome::Failure((
+                    _ => Outcome::Error((
                         Status::Unauthorized,
                         Status::Unauthorized
                             .reason()
