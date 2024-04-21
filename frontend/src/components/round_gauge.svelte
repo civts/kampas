@@ -7,7 +7,7 @@
 	export let max_value = 100;
 	export let width = 150;
 	export let height = 150;
-	export let thickness = 6;
+	export let thickness = 16;
 	export let color: string | undefined = undefined;
 	export let text: string = `${Math.round(value)}${percent ? '%' : ''}`;
 
